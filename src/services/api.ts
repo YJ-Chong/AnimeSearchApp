@@ -38,3 +38,17 @@ export const getAnimeDetail = async (id: number): Promise<AnimeDetailResponse> =
   return response.json();
 };
 
+export const getTopAnime = async (limit: number = 10, page: number = 1): Promise<AnimeSearchResponse> => {
+  const url = new URL(`${JIKAN_BASE_URL}/top/anime`);
+  url.searchParams.append('limit', limit.toString());
+  url.searchParams.append('page', page.toString());
+  
+  const response = await fetch(url.toString());
+  
+  if (!response.ok) {
+    throw new Error(`Failed to fetch top anime: ${response.statusText}`);
+  }
+  
+  return response.json();
+};
+

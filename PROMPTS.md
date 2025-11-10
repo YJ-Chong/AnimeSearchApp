@@ -1429,3 +1429,208 @@ The component displays empty states in this priority order:
 ✅ Responsive design works on mobile and desktop
 ✅ Buttons have proper hover states
 ✅ Decorative elements animate correctly
+
+---
+
+## Prompt: Recommendation Feature Implementation
+
+**Prompt:**
+Please add a recommendation feature in this anime searching app. The recommendations should show at the bottom on the search page.
+
+**AI response and action:**
+
+### Recommendation Feature Implementation
+
+A comprehensive recommendation system was implemented to display top-rated anime at the bottom of the search page, helping users discover popular content.
+
+### API Service Updates (`src/services/api.ts`)
+
+#### New Function Added
+
+**`getTopAnime` Function:**
+- Fetches top-rated anime from Jikan API's `/top/anime` endpoint
+- Parameters:
+  - `limit: number` (default: 10) - Maximum number of anime to return
+  - `page: number` (default: 1) - Page number for pagination
+- Returns: `Promise<AnimeSearchResponse>` - Same structure as search results
+- Error handling: Throws descriptive error if API request fails
+- Uses Jikan API v4 endpoint: `https://api.jikan.moe/v4/top/anime`
+
+**Implementation Details:**
+- Uses URL constructor to build query string with limit and page parameters
+- Maintains consistency with existing API service patterns
+- Returns results sorted by rating in descending order (highest rated first)
+
+### Redux Store Updates (`src/store/slices/animeSlice.ts`)
+
+#### State Management Enhancements
+
+**1. Updated `AnimeState` Interface:**
+- Added `recommendations: Anime[]` - Array to store recommended anime
+- Added `recommendationsLoading: boolean` - Loading state for recommendations
+- Separate loading state prevents interference with main search functionality
+
+**2. New Async Thunk: `fetchRecommendations`**
+- Action type: `'anime/recommendations'`
+- Parameters: `{ limit?: number }` (default: 10)
+- Fetches top anime using `getTopAnime` API function
+- Returns array of `Anime` objects
+- Error handling: Returns error message but doesn't disrupt main search
+
+**3. Reducer Updates:**
+- **`fetchRecommendations.pending`**: Sets `recommendationsLoading` to true
+- **`fetchRecommendations.fulfilled`**: 
+  - Sets `recommendationsLoading` to false
+  - Stores fetched anime in `recommendations` array
+- **`fetchRecommendations.rejected`**: 
+  - Sets `recommendationsLoading` to false
+  - Doesn't set error state to avoid disrupting main search experience
+
+### Recommendations Component (`src/components/Recommendations.tsx`)
+
+#### Component Features
+
+**1. Automatic Data Fetching:**
+- Fetches recommendations on component mount
+- Only fetches if recommendations array is empty and not currently loading
+- Uses `useEffect` hook with proper dependencies
+- Dispatches `fetchRecommendations` with limit of 12 anime
+
+**2. Visual Design:**
+- **Header Section**:
+  - "Recommendations" title with gradient text effect
+  - Glassmorphism Paper container with backdrop blur
+  - Fade-in animation matching app's design system
+  - Responsive typography (1.75rem mobile, 2.25rem desktop)
+
+- **Grid Layout**:
+  - Material-UI Grid with responsive breakpoints
+  - 4 columns on large screens (lg={3})
+  - 3 columns on medium screens (md={4})
+  - 2 columns on small screens (sm={6})
+  - 1 column on mobile (xs={12})
+
+**3. Anime Cards:**
+- Identical design to search results cards for consistency
+- Features:
+  - Anime image with hover zoom effect (`scale(1.1)`)
+  - Score badge overlay (top-right corner) with gradient background
+  - Title with MarqueeText component for long titles
+  - Alternative titles (English/Japanese)
+  - Clickable cards that navigate to detail page
+  - Image error handling with placeholder fallback
+  - Staggered fade-in animations (0.05s delay per card)
+
+**4. Loading State:**
+- Shows skeleton cards while fetching recommendations
+- Displays 8 skeleton cards matching the grid layout
+- Uses existing `SkeletonCard` component for consistency
+- Staggered animations for visual appeal
+- Only shows when loading and no recommendations exist
+
+**5. Conditional Rendering:**
+- Returns `null` if no recommendations are available (after loading completes)
+- Prevents empty section from displaying
+- Maintains clean UI when recommendations fail to load
+
+**6. Navigation:**
+- Cards are clickable and navigate to detail page
+- Uses React Router's `useNavigate` hook
+- Navigates to `/anime/{id}` route
+- Maintains app's navigation patterns
+
+### SearchPage Integration (`src/pages/SearchPage.tsx`)
+
+#### Component Integration
+
+**1. Import Statement:**
+- Added `Recommendations` component import
+
+**2. Component Placement:**
+- Rendered at the bottom of the page
+- Positioned after pagination component
+- Appears after all empty states
+- Always visible (not conditional on search results)
+
+**3. User Experience:**
+- Recommendations appear regardless of search state
+- Provides content discovery even when no search is performed
+- Helps users find popular anime to explore
+- Maintains visual consistency with rest of the page
+
+### Key Features
+
+1. **Top-Rated Anime**: Displays highest-rated anime from MyAnimeList
+2. **Automatic Loading**: Fetches recommendations on page load
+3. **Consistent Design**: Matches search results card design exactly
+4. **Smooth Animations**: Staggered fade-in effects for visual appeal
+5. **Loading States**: Skeleton loaders during data fetch
+6. **Error Resilience**: Fails gracefully without disrupting main search
+7. **Responsive Layout**: Adapts to all screen sizes
+8. **Theme Support**: Uses CSS variables for consistent theming
+9. **Navigation**: Clickable cards navigate to detail pages
+10. **Performance**: Only fetches once per session (unless cleared)
+
+### Technical Implementation Details
+
+**API Integration:**
+- Uses Jikan API's `/top/anime` endpoint
+- Fetches 12 recommendations by default
+- Results sorted by rating (highest first)
+- Same data structure as search results for code reuse
+
+**State Management:**
+- Separate loading state prevents UI conflicts
+- Recommendations stored in Redux for potential future use
+- Independent from search results state
+
+**Component Architecture:**
+- Presentational component (receives data from Redux)
+- Self-contained data fetching logic
+- Reuses existing card components and styling
+- Follows app's component patterns
+
+**Performance Considerations:**
+- Only fetches when recommendations array is empty
+- Prevents unnecessary API calls on re-renders
+- Uses existing image optimization utilities
+- Lazy loading for images
+
+**User Experience:**
+- Always visible at bottom of page
+- Provides content discovery opportunity
+- Doesn't interfere with search functionality
+- Smooth transitions and animations
+
+### Files Created/Modified
+
+**New Files:**
+1. `src/components/Recommendations.tsx`: Complete recommendations component with grid layout, loading states, and navigation
+
+**Modified Files:**
+1. `src/services/api.ts`:
+   - Added `getTopAnime` function
+   - Integrated with Jikan API top anime endpoint
+
+2. `src/store/slices/animeSlice.ts`:
+   - Added `recommendations` and `recommendationsLoading` to state
+   - Created `fetchRecommendations` async thunk
+   - Added reducer cases for recommendations loading states
+
+3. `src/pages/SearchPage.tsx`:
+   - Added Recommendations component import
+   - Integrated Recommendations component at bottom of page
+
+### Testing Checklist
+
+✅ Recommendations appear at bottom of search page
+✅ Recommendations fetch automatically on page load
+✅ Skeleton loaders show during data fetch
+✅ Cards display correctly with images, titles, and scores
+✅ Cards are clickable and navigate to detail pages
+✅ Responsive layout works on all screen sizes
+✅ Animations work smoothly
+✅ Theme-aware styling works correctly
+✅ Recommendations don't interfere with search functionality
+✅ Error handling works gracefully
+✅ Loading state doesn't block main search

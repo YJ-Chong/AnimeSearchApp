@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import type { Anime } from '../../types/anime';
-import { searchAnime, getAnimeDetail } from '../../services/api';
+import { searchAnime, getAnimeDetail, getTopAnime } from '../../services/api';
 
 interface PaginationInfo {
   currentPage: number;
@@ -14,7 +14,9 @@ interface PaginationInfo {
 interface AnimeState {
   searchResults: Anime[];
   selectedAnime: Anime | null;
+  recommendations: Anime[];
   loading: boolean;
+  recommendationsLoading: boolean;
   error: string | null;
   searchQuery: string;
   pagination: PaginationInfo | null;
@@ -23,7 +25,9 @@ interface AnimeState {
 const initialState: AnimeState = {
   searchResults: [],
   selectedAnime: null,
+  recommendations: [],
   loading: false,
+  recommendationsLoading: false,
   error: null,
   searchQuery: '',
   pagination: null,
@@ -83,6 +87,24 @@ export const fetchAnimeDetail = createAsyncThunk<
   }
 );
 
+export const fetchRecommendations = createAsyncThunk<
+  Anime[],
+  { limit?: number },
+  { rejectValue: string }
+>(
+  'anime/recommendations',
+  async ({ limit = 10 }, { rejectWithValue }) => {
+    try {
+      const response = await getTopAnime(limit, 1);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error instanceof Error ? error.message : 'Failed to fetch recommendations'
+      );
+    }
+  }
+);
+
 const animeSlice = createSlice({
   name: 'anime',
   initialState,
@@ -132,6 +154,18 @@ const animeSlice = createSlice({
         state.loading = false;
         state.error = action.payload || 'Failed to fetch anime details';
         state.selectedAnime = null;
+      })
+      // Recommendations
+      .addCase(fetchRecommendations.pending, (state: AnimeState) => {
+        state.recommendationsLoading = true;
+      })
+      .addCase(fetchRecommendations.fulfilled, (state: AnimeState, action: PayloadAction<Anime[]>) => {
+        state.recommendationsLoading = false;
+        state.recommendations = action.payload;
+      })
+      .addCase(fetchRecommendations.rejected, (state: AnimeState) => {
+        state.recommendationsLoading = false;
+        // Don't set error for recommendations to avoid disrupting main search
       });
   },
 });

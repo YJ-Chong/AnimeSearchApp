@@ -8,6 +8,7 @@ import Pagination from '../components/Pagination';
 import SkeletonCard from '../components/SkeletonCard';
 import SkeletonListItem from '../components/SkeletonListItem';
 import EmptyState from '../components/EmptyState';
+import Recommendations from '../components/Recommendations';
 import { getAnimeImageUrl, getPlaceholderImage } from '../utils/imageUtils';
 import {
   Container,
@@ -658,6 +659,9 @@ const SearchPage = () => {
           )}
         </>
       )}
+
+      {/* Recommendations Section */}
+      <Recommendations />
     </Container>
   );
 };
