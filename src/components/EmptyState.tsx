@@ -1,20 +1,25 @@
-import { Box, Typography, Button, Paper } from '@mui/material';
+import { Box, Typography, Button, Paper, CircularProgress } from '@mui/material';
 import ClearAllIcon from '@mui/icons-material/ClearAll';
 import SearchOffIcon from '@mui/icons-material/SearchOff';
 import FilterListIcon from '@mui/icons-material/FilterList';
+import ShuffleIcon from '@mui/icons-material/Shuffle';
 
 interface EmptyStateProps {
   type: 'no-results' | 'filtered' | 'initial';
   onClearFilters?: () => void;
   onTryDifferent?: () => void;
+  onRandomAnime?: () => void;
   hasFilters?: boolean;
+  randomAnimeLoading?: boolean;
 }
 
 const EmptyState = ({
   type,
   onClearFilters,
   onTryDifferent,
+  onRandomAnime,
   hasFilters = false,
+  randomAnimeLoading = false,
 }: EmptyStateProps) => {
   const getContent = () => {
     switch (type) {
@@ -25,6 +30,7 @@ const EmptyState = ({
           description: "We couldn't find any anime matching your search term. Try adjusting your keywords or explore different titles.",
           showClearButton: false,
           showTryDifferent: true,
+          showRandomButton: false,
         };
       case 'filtered':
         return {
@@ -33,6 +39,7 @@ const EmptyState = ({
           description: 'The filters you applied are too restrictive. Try adjusting your genre selections or sorting options to see more results.',
           showClearButton: true,
           showTryDifferent: true,
+          showRandomButton: false,
         };
       case 'initial':
         return {
@@ -41,6 +48,7 @@ const EmptyState = ({
           description: 'Search for your favorite anime titles, explore different genres, and discover new series to watch.',
           showClearButton: false,
           showTryDifferent: false,
+          showRandomButton: true,
         };
       default:
         return {
@@ -49,6 +57,7 @@ const EmptyState = ({
           description: 'Try adjusting your search or filters.',
           showClearButton: false,
           showTryDifferent: false,
+          showRandomButton: false,
         };
     }
   };
@@ -212,6 +221,39 @@ const EmptyState = ({
             }}
           >
             Clear Filters
+          </Button>
+        )}
+
+        {content.showRandomButton && onRandomAnime && (
+          <Button
+            variant="contained"
+            startIcon={randomAnimeLoading ? <CircularProgress size={16} sx={{ color: 'var(--text-primary)' }} /> : <ShuffleIcon sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }} />}
+            onClick={onRandomAnime}
+            disabled={randomAnimeLoading}
+            sx={{
+              background: 'var(--gradient-primary)',
+              color: 'var(--text-primary)',
+              px: { xs: 3, sm: 4 },
+              py: { xs: 1.25, sm: 1.5 },
+              borderRadius: 3,
+              fontWeight: 600,
+              fontSize: { xs: '0.875rem', sm: '1rem' },
+              minHeight: { xs: '44px', sm: '40px' },
+              width: { xs: '100%', sm: 'auto' },
+              textTransform: 'none',
+              boxShadow: '0 4px 15px var(--shadow-glow)',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              '&:hover': {
+                transform: 'translateY(-2px)',
+                boxShadow: '0 6px 20px var(--shadow-glow-hover)',
+                background: 'var(--gradient-primary-hover)',
+              },
+              '&:disabled': {
+                opacity: 0.6,
+              },
+            }}
+          >
+            Random Anime
           </Button>
         )}
       </Box>

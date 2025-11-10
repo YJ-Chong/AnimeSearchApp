@@ -10,6 +10,7 @@ import SkeletonListItem from '../components/SkeletonListItem';
 import EmptyState from '../components/EmptyState';
 import Recommendations from '../components/Recommendations';
 import { getAnimeImageUrl, getPlaceholderImage } from '../utils/imageUtils';
+import { getRandomAnime } from '../services/api';
 import {
   Container,
   Box,
@@ -40,6 +41,8 @@ const SearchPage = () => {
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [currentPage, setCurrentPage] = useState(1);
+  const [randomAnimeLoading, setRandomAnimeLoading] = useState(false);
+  const [lastRandomClick, setLastRandomClick] = useState<number>(0);
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { searchResults, loading, error, pagination, searchQuery } = useAppSelector((state) => state.anime);
@@ -208,6 +211,30 @@ const SearchPage = () => {
     setSelectedGenres([]);
     setSortOption('rating-high');
     setCurrentPage(1);
+  };
+
+  const handleRandomAnime = async () => {
+    // Rate limiting: prevent clicks too frequently (minimum 1 second between clicks)
+    const now = Date.now();
+    const timeSinceLastClick = now - lastRandomClick;
+    if (timeSinceLastClick < 1000) {
+      return;
+    }
+    
+    setLastRandomClick(now);
+    setRandomAnimeLoading(true);
+    
+    try {
+      const randomAnime = await getRandomAnime();
+      // Use replace: false to allow proper browser history navigation
+      // This ensures back button works correctly
+      navigate(`/anime/${randomAnime.mal_id}`, { replace: false });
+    } catch (error) {
+      // Error handling is done in the API function
+      console.error('Failed to fetch random anime:', error);
+    } finally {
+      setRandomAnimeLoading(false);
+    }
   };
 
   // Filter and sort anime results
@@ -726,6 +753,8 @@ const SearchPage = () => {
               type="initial"
               onClearFilters={handleClearFilters}
               onTryDifferent={handleTryDifferent}
+              onRandomAnime={handleRandomAnime}
+              randomAnimeLoading={randomAnimeLoading}
             />
           )}
         </>

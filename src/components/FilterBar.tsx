@@ -1,5 +1,4 @@
 import { useState, useMemo, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Paper,
@@ -16,9 +15,6 @@ import {
   Collapse,
   IconButton,
   Divider,
-  CircularProgress,
-  Alert,
-  Snackbar,
 } from '@mui/material';
 import {
   ViewModule as GridViewIcon,
@@ -26,10 +22,8 @@ import {
   FilterList as FilterIcon,
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
-  Shuffle as ShuffleIcon,
 } from '@mui/icons-material';
 import type { Anime } from '../types/anime';
-import { getRandomAnime } from '../services/api';
 
 export type SortOption = 'rating-high' | 'rating-low' | 'name-az' | 'name-za' | 'newest' | 'oldest';
 export type ViewMode = 'grid' | 'list';
@@ -61,16 +55,12 @@ const FilterBar = ({
   selectedGenres,
   viewMode,
 }: FilterBarProps) => {
-  const navigate = useNavigate();
   const [showFilters, setShowFilters] = useState(true);
   const [showAdditionalSearch, setShowAdditionalSearch] = useState(false);
   const [autocompleteOpen, setAutocompleteOpen] = useState(false);
   const [autocompleteOptions, setAutocompleteOptions] = useState<string[]>([]);
   const [genreAutocompleteOpen, setGenreAutocompleteOpen] = useState(false);
   const [genreAutocompleteOptions, setGenreAutocompleteOptions] = useState<string[]>([]);
-  const [randomAnimeLoading, setRandomAnimeLoading] = useState(false);
-  const [randomAnimeError, setRandomAnimeError] = useState<string | null>(null);
-  const [lastRandomClick, setLastRandomClick] = useState<number>(0);
 
   // Extract unique genres from anime list
   const availableGenres = useMemo(() => {
@@ -135,59 +125,8 @@ const FilterBar = ({
     onGenreSearchChange('');
   };
 
-  const handleRandomAnime = async () => {
-    // Rate limiting: prevent clicks too frequently (minimum 1 second between clicks)
-    const now = Date.now();
-    const timeSinceLastClick = now - lastRandomClick;
-    if (timeSinceLastClick < 1000) {
-      setRandomAnimeError('Please wait a moment before trying again.');
-      setTimeout(() => setRandomAnimeError(null), 3000);
-      return;
-    }
-    
-    setLastRandomClick(now);
-    setRandomAnimeError(null);
-    setRandomAnimeLoading(true);
-    
-    try {
-      const randomAnime = await getRandomAnime();
-      // Use replace: false to allow proper browser history navigation
-      // This ensures back button works correctly
-      navigate(`/anime/${randomAnime.mal_id}`, { replace: false });
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch random anime. Please try again.';
-      setRandomAnimeError(errorMessage);
-      // Clear error after 5 seconds
-      setTimeout(() => setRandomAnimeError(null), 5000);
-    } finally {
-      setRandomAnimeLoading(false);
-    }
-  };
-
   return (
-    <>
-      <Snackbar
-        open={!!randomAnimeError}
-        autoHideDuration={5000}
-        onClose={() => setRandomAnimeError(null)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-      >
-        <Alert
-          onClose={() => setRandomAnimeError(null)}
-          severity="error"
-          sx={{
-            background: 'var(--bg-hover-secondary)',
-            border: '1px solid var(--border-hover)',
-            color: 'var(--text-primary)',
-            '& .MuiAlert-icon': {
-              color: 'var(--accent-error)',
-            },
-          }}
-        >
-          {randomAnimeError}
-        </Alert>
-      </Snackbar>
-      <Paper
+    <Paper
         elevation={3}
         sx={{
           p: { xs: 2, sm: 2.5, md: 3 },
@@ -522,32 +461,6 @@ const FilterBar = ({
                   List
                 </Button>
               </ButtonGroup>
-              <Button
-                onClick={handleRandomAnime}
-                variant="outlined"
-                fullWidth
-                startIcon={randomAnimeLoading ? <CircularProgress size={16} sx={{ color: 'var(--text-primary)' }} /> : <ShuffleIcon sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }} />}
-                disabled={randomAnimeLoading}
-                sx={{
-                  width: { xs: '100%', sm: 'auto' },
-                  borderColor: 'var(--border-hover)',
-                  color: 'var(--text-primary)',
-                  minHeight: { xs: '44px', sm: '40px' },
-                  fontSize: { xs: '0.875rem', sm: '1rem' },
-                  padding: { xs: '10px 16px', sm: '8px 20px' },
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                  '&:hover': {
-                    borderColor: 'var(--border-focus)',
-                    backgroundColor: 'var(--bg-hover)',
-                  },
-                  '&:disabled': {
-                    borderColor: 'var(--border-secondary)',
-                    color: 'var(--text-secondary)',
-                  },
-                }}
-              >
-                Random Anime
-              </Button>
             </Box>
 
             {(selectedGenres.length > 0 || sortValue !== 'rating-high' || genreSearchQuery) && (
@@ -629,7 +542,6 @@ const FilterBar = ({
         </Box>
       </Collapse>
     </Paper>
-    </>
   );
 };
 
