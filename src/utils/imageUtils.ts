@@ -5,23 +5,39 @@ import type { Anime } from '../types/anime';
  * Some APIs return relative URLs or URLs without protocol
  */
 const normalizeImageUrl = (url: string | null | undefined): string | null => {
-  if (!url || url.trim() === '' || url === 'null' || url === 'undefined') {
+  if (!url || typeof url !== 'string') {
+    return null;
+  }
+
+  const trimmed = url.trim();
+  
+  // Check for empty or invalid string values
+  if (trimmed === '' || trimmed === 'null' || trimmed === 'undefined' || trimmed === 'N/A') {
     return null;
   }
 
   // If it's already a data URI or absolute URL, return as is
-  if (url.startsWith('data:') || url.startsWith('http://') || url.startsWith('https://')) {
-    return url;
+  if (trimmed.startsWith('data:') || trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    return trimmed;
   }
 
   // If it's a relative URL starting with //, add https:
-  if (url.startsWith('//')) {
-    return `https:${url}`;
+  if (trimmed.startsWith('//')) {
+    return `https:${trimmed}`;
   }
 
-  // If it's a relative URL, try to construct absolute URL
-  // Note: This assumes the API base URL, but Jikan API should return absolute URLs
-  return url;
+  // If it's a relative URL starting with /, try to construct absolute URL
+  // Jikan API images are typically on cdn.myanimelist.net
+  if (trimmed.startsWith('/')) {
+    // If it looks like a Jikan/MAL image path, prepend the CDN domain
+    if (trimmed.includes('images') || trimmed.includes('anime')) {
+      return `https://cdn.myanimelist.net${trimmed}`;
+    }
+    return trimmed;
+  }
+
+  // Return as is if it looks like a valid URL path
+  return trimmed;
 };
 
 /**
@@ -31,39 +47,50 @@ const normalizeImageUrl = (url: string | null | undefined): string | null => {
  * @returns A valid image URL or a placeholder
  */
 export const getAnimeImageUrl = (anime: Anime | null | undefined, preferLarge: boolean = true): string => {
-  if (!anime || !anime.images) {
+  if (!anime) {
+    return getPlaceholderImage();
+  }
+
+  // Check if images object exists and is valid
+  if (!anime.images || (typeof anime.images !== 'object')) {
     return getPlaceholderImage();
   }
 
   // Try JPG images first
-  if (anime.images.jpg) {
+  if (anime.images.jpg && typeof anime.images.jpg === 'object') {
+    // Try large image first if preferred
     if (preferLarge && anime.images.jpg.large_image_url) {
       const normalized = normalizeImageUrl(anime.images.jpg.large_image_url);
-      if (normalized) return normalized;
+      if (normalized && isValidImageUrl(normalized)) return normalized;
     }
+    // Try regular image URL
     if (anime.images.jpg.image_url) {
       const normalized = normalizeImageUrl(anime.images.jpg.image_url);
-      if (normalized) return normalized;
+      if (normalized && isValidImageUrl(normalized)) return normalized;
     }
+    // Try small image as last resort
     if (anime.images.jpg.small_image_url) {
       const normalized = normalizeImageUrl(anime.images.jpg.small_image_url);
-      if (normalized) return normalized;
+      if (normalized && isValidImageUrl(normalized)) return normalized;
     }
   }
 
   // Fallback to WebP images
-  if (anime.images.webp) {
+  if (anime.images.webp && typeof anime.images.webp === 'object') {
+    // Try large image first if preferred
     if (preferLarge && anime.images.webp.large_image_url) {
       const normalized = normalizeImageUrl(anime.images.webp.large_image_url);
-      if (normalized) return normalized;
+      if (normalized && isValidImageUrl(normalized)) return normalized;
     }
+    // Try regular image URL
     if (anime.images.webp.image_url) {
       const normalized = normalizeImageUrl(anime.images.webp.image_url);
-      if (normalized) return normalized;
+      if (normalized && isValidImageUrl(normalized)) return normalized;
     }
+    // Try small image as last resort
     if (anime.images.webp.small_image_url) {
       const normalized = normalizeImageUrl(anime.images.webp.small_image_url);
-      if (normalized) return normalized;
+      if (normalized && isValidImageUrl(normalized)) return normalized;
     }
   }
 
@@ -106,17 +133,26 @@ export const getPlaceholderImage = (): string => {
  * @returns true if the URL appears valid
  */
 export const isValidImageUrl = (url: string | null | undefined): boolean => {
-  if (!url || url.trim() === '') {
+  if (!url || typeof url !== 'string' || url.trim() === '') {
     return false;
+  }
+  
+  const trimmed = url.trim();
+  
+  // Data URIs are always valid
+  if (trimmed.startsWith('data:')) {
+    return true;
   }
   
   // Check if it's a valid URL format
   try {
-    const urlObj = new URL(url);
+    const urlObj = new URL(trimmed);
+    // Only allow http and https protocols
     return urlObj.protocol === 'http:' || urlObj.protocol === 'https:';
   } catch {
-    // If it's a relative URL or data URI, consider it valid
-    return url.startsWith('/') || url.startsWith('data:');
+    // If it's a relative URL starting with /, consider it potentially valid
+    // (though we should normalize it first)
+    return trimmed.startsWith('/');
   }
 };
 

@@ -352,10 +352,15 @@ const SearchPage = () => {
                           height="300"
                           image={getAnimeImageUrl(anime, true)}
                           alt={anime.title}
+                          loading="lazy"
                           onError={(e) => {
                             const target = e.target as HTMLImageElement;
-                            if (target.src !== getPlaceholderImage()) {
-                              target.src = getPlaceholderImage();
+                            const placeholder = getPlaceholderImage();
+                            // Only set placeholder if current src is not already the placeholder
+                            // This prevents infinite error loops
+                            if (target.src !== placeholder && !target.src.includes('data:image/svg+xml')) {
+                              target.src = placeholder;
+                              target.onerror = null; // Prevent infinite loop
                             }
                           }}
                           sx={{ 
@@ -363,6 +368,7 @@ const SearchPage = () => {
                             transition: 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
                             height: '100%',
                             width: '100%',
+                            backgroundColor: 'var(--bg-active)',
                           }}
                         />
                         {anime.score && (
@@ -481,10 +487,18 @@ const SearchPage = () => {
                           src={getAnimeImageUrl(anime, true)}
                           alt={anime.title}
                           imgProps={{
+                            loading: 'lazy',
                             onError: (e) => {
                               const target = e.target as HTMLImageElement;
-                              if (target.src !== getPlaceholderImage()) {
-                                target.src = getPlaceholderImage();
+                              const placeholder = getPlaceholderImage();
+                              // Only set placeholder if current src is not already the placeholder
+                              // This prevents infinite error loops
+                              if (target.src !== placeholder && !target.src.includes('data:image/svg+xml')) {
+                                target.src = placeholder;
+                                // Remove the error handler to prevent infinite loop
+                                if (target.onerror) {
+                                  target.onerror = null;
+                                }
                               }
                             },
                           }}
@@ -493,6 +507,7 @@ const SearchPage = () => {
                             height: '100%',
                             borderRadius: 2,
                             objectFit: 'cover',
+                            backgroundColor: 'var(--bg-active)',
                           }}
                         />
                       </ListItemAvatar>

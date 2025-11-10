@@ -161,10 +161,15 @@ const DetailPage = () => {
               component="img"
               src={imageUrl}
               alt={selectedAnime.title}
+              loading="lazy"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
-                if (target.src !== getPlaceholderImage()) {
-                  target.src = getPlaceholderImage();
+                const placeholder = getPlaceholderImage();
+                // Only set placeholder if current src is not already the placeholder
+                // This prevents infinite error loops
+                if (target.src !== placeholder && !target.src.includes('data:image/svg+xml')) {
+                  target.src = placeholder;
+                  target.onerror = null; // Prevent infinite loop
                 }
               }}
               sx={{
@@ -174,6 +179,7 @@ const DetailPage = () => {
                 boxShadow: `0 20px 60px var(--shadow-glow), 0 0 40px var(--shadow-accent)`,
                 border: '2px solid var(--border-secondary)',
                 transition: 'all 0.3s ease',
+                backgroundColor: 'var(--bg-active)',
                 '&:hover': {
                   transform: 'scale(1.02)',
                   boxShadow: `0 25px 70px var(--shadow-glow-hover), 0 0 50px var(--shadow-accent)`,
