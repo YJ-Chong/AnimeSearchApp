@@ -59,7 +59,7 @@ const EmptyState = ({
     <Paper
       elevation={3}
       sx={{
-        p: 6,
+        p: { xs: 3, sm: 4, md: 6 },
         textAlign: 'center',
         animation: 'fadeInUp 0.6s ease-out',
         background: 'var(--gradient-paper)',
@@ -68,14 +68,14 @@ const EmptyState = ({
         borderRadius: 4,
         maxWidth: 600,
         mx: 'auto',
-        my: 4,
+        my: { xs: 2, sm: 3, md: 4 },
       }}
     >
       {/* Animated icon/illustration */}
       <Box
         sx={{
-          fontSize: '6rem',
-          mb: 3,
+          fontSize: { xs: '4rem', sm: '5rem', md: '6rem' },
+          mb: { xs: 2, sm: 2.5, md: 3 },
           animation: 'fadeInUp 0.8s ease-out',
           filter: 'drop-shadow(0 0 20px var(--shadow-glow))',
           display: 'flex',
@@ -91,13 +91,13 @@ const EmptyState = ({
         variant="h4"
         component="h2"
         sx={{
-          mb: 2,
+          mb: { xs: 1.5, sm: 2 },
           fontWeight: 700,
           background: 'var(--gradient-secondary)',
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
           backgroundClip: 'text',
-          fontSize: { xs: '1.8rem', md: '2.2rem' },
+          fontSize: { xs: '1.4rem', sm: '1.8rem', md: '2.2rem' },
         }}
       >
         {content.title}
@@ -107,13 +107,14 @@ const EmptyState = ({
       <Typography
         variant="body1"
         sx={{
-          mb: 4,
+          mb: { xs: 3, sm: 3.5, md: 4 },
           color: 'var(--text-secondary)',
           fontFamily: '"Poppins", sans-serif',
-          fontSize: '1.1rem',
-          lineHeight: 1.8,
+          fontSize: { xs: '0.875rem', sm: '1rem', md: '1.1rem' },
+          lineHeight: { xs: 1.6, sm: 1.7, md: 1.8 },
           maxWidth: 500,
           mx: 'auto',
+          px: { xs: 1, sm: 0 },
         }}
       >
         {content.description}
@@ -123,7 +124,8 @@ const EmptyState = ({
       <Box
         sx={{
           display: 'flex',
-          gap: 2,
+          flexDirection: { xs: 'column', sm: 'row' },
+          gap: { xs: 1.5, sm: 2 },
           justifyContent: 'center',
           flexWrap: 'wrap',
         }}
@@ -131,16 +133,19 @@ const EmptyState = ({
         {content.showClearButton && onClearFilters && (
           <Button
             variant="contained"
-            startIcon={<ClearAllIcon />}
+            startIcon={<ClearAllIcon sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }} />}
             onClick={onClearFilters}
+            fullWidth={xs => xs ? true : false}
             sx={{
               background: 'var(--gradient-primary)',
               color: 'var(--text-primary)',
-              px: 4,
-              py: 1.5,
+              px: { xs: 3, sm: 4 },
+              py: { xs: 1.25, sm: 1.5 },
               borderRadius: 3,
               fontWeight: 600,
-              fontSize: '1rem',
+              fontSize: { xs: '0.875rem', sm: '1rem' },
+              minHeight: { xs: '44px', sm: '40px' },
+              width: { xs: '100%', sm: 'auto' },
               textTransform: 'none',
               boxShadow: '0 4px 15px var(--shadow-glow)',
               transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -158,16 +163,19 @@ const EmptyState = ({
         {content.showTryDifferent && onTryDifferent && (
           <Button
             variant="outlined"
-            startIcon={<SearchOffIcon />}
+            startIcon={<SearchOffIcon sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }} />}
             onClick={onTryDifferent}
+            fullWidth={xs => xs ? true : false}
             sx={{
               borderColor: 'var(--border-hover)',
               color: 'var(--text-primary)',
-              px: 4,
-              py: 1.5,
+              px: { xs: 3, sm: 4 },
+              py: { xs: 1.25, sm: 1.5 },
               borderRadius: 3,
               fontWeight: 600,
-              fontSize: '1rem',
+              fontSize: { xs: '0.875rem', sm: '1rem' },
+              minHeight: { xs: '44px', sm: '40px' },
+              width: { xs: '100%', sm: 'auto' },
               textTransform: 'none',
               transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
               '&:hover': {
@@ -184,16 +192,19 @@ const EmptyState = ({
         {hasFilters && !content.showClearButton && onClearFilters && (
           <Button
             variant="outlined"
-            startIcon={<FilterListIcon />}
+            startIcon={<FilterListIcon sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }} />}
             onClick={onClearFilters}
+            fullWidth={xs => xs ? true : false}
             sx={{
               borderColor: 'var(--border-hover)',
               color: 'var(--text-primary)',
-              px: 4,
-              py: 1.5,
+              px: { xs: 3, sm: 4 },
+              py: { xs: 1.25, sm: 1.5 },
               borderRadius: 3,
               fontWeight: 600,
-              fontSize: '1rem',
+              fontSize: { xs: '0.875rem', sm: '1rem' },
+              minHeight: { xs: '44px', sm: '40px' },
+              width: { xs: '100%', sm: 'auto' },
               textTransform: 'none',
               transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
               '&:hover': {
@@ -211,10 +222,10 @@ const EmptyState = ({
       {/* Decorative elements */}
       <Box
         sx={{
-          mt: 4,
+          mt: { xs: 3, sm: 3.5, md: 4 },
           display: 'flex',
           justifyContent: 'center',
-          gap: 2,
+          gap: { xs: 1, sm: 1.5, md: 2 },
           opacity: 0.6,
         }}
       >
@@ -222,7 +233,7 @@ const EmptyState = ({
           <Box
             key={index}
             sx={{
-              fontSize: '1.5rem',
+              fontSize: { xs: '1.2rem', sm: '1.35rem', md: '1.5rem' },
               animation: `fadeInUp 0.6s ease-out ${index * 0.1}s both`,
             }}
           >

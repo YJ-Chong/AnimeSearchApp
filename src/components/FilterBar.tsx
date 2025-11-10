@@ -151,7 +151,9 @@ const FilterBar = ({
     
     try {
       const randomAnime = await getRandomAnime();
-      navigate(`/anime/${randomAnime.mal_id}`);
+      // Use replace: false to allow proper browser history navigation
+      // This ensures back button works correctly
+      navigate(`/anime/${randomAnime.mal_id}`, { replace: false });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to fetch random anime. Please try again.';
       setRandomAnimeError(errorMessage);
@@ -188,28 +190,28 @@ const FilterBar = ({
       <Paper
         elevation={3}
         sx={{
-          p: 3,
-          mb: 4,
+          p: { xs: 2, sm: 2.5, md: 3 },
+          mb: { xs: 2, sm: 3, md: 4 },
           animation: 'fadeInUp 0.6s ease-out',
           background: 'var(--gradient-paper)',
           backdropFilter: 'blur(10px)',
           border: '1px solid var(--border-primary)',
         }}
       >
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          mb: 2,
-        }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <FilterIcon sx={{ color: 'var(--accent-primary)' }} />
-          <Typography variant="h6" sx={{ color: 'var(--text-primary)', fontWeight: 600 }}>
-            Filters & Search
-          </Typography>
-        </Box>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              mb: { xs: 1.5, sm: 2 },
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 1 } }}>
+              <FilterIcon sx={{ color: 'var(--accent-primary)', fontSize: { xs: '1.2rem', sm: '1.5rem' } }} />
+              <Typography variant="h6" sx={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
+                Filters & Search
+              </Typography>
+            </Box>
         <IconButton
           onClick={() => setShowFilters(!showFilters)}
           sx={{
@@ -247,6 +249,8 @@ const FilterBar = ({
                     '& .MuiOutlinedInput-root': {
                       backgroundColor: 'var(--bg-input)',
                       color: 'var(--text-primary)',
+                      fontSize: { xs: '0.9rem', sm: '1rem' },
+                      minHeight: { xs: '48px', sm: '56px' },
                       '& fieldset': {
                         borderColor: 'var(--border-secondary)',
                       },
@@ -259,6 +263,7 @@ const FilterBar = ({
                     },
                     '& .MuiInputLabel-root': {
                       color: 'var(--text-secondary)',
+                      fontSize: { xs: '0.9rem', sm: '1rem' },
                     },
                     '& .MuiInputLabel-root.Mui-focused': {
                       color: 'var(--accent-primary)',
@@ -308,6 +313,9 @@ const FilterBar = ({
                 borderColor: 'var(--border-hover)',
                 color: 'var(--text-primary)',
                 textTransform: 'none',
+                minHeight: { xs: '44px', sm: '40px' },
+                fontSize: { xs: '0.875rem', sm: '1rem' },
+                padding: { xs: '10px 16px', sm: '8px 20px' },
                 '&:hover': {
                   borderColor: 'var(--border-focus)',
                   backgroundColor: 'var(--bg-hover)',
@@ -343,6 +351,8 @@ const FilterBar = ({
                         '& .MuiOutlinedInput-root': {
                           backgroundColor: 'var(--bg-input)',
                           color: 'var(--text-primary)',
+                          fontSize: { xs: '0.9rem', sm: '1rem' },
+                          minHeight: { xs: '48px', sm: '56px' },
                           '& fieldset': {
                             borderColor: 'var(--border-secondary)',
                           },
@@ -355,6 +365,7 @@ const FilterBar = ({
                         },
                         '& .MuiInputLabel-root': {
                           color: 'var(--text-secondary)',
+                          fontSize: { xs: '0.9rem', sm: '1rem' },
                         },
                         '& .MuiInputLabel-root.Mui-focused': {
                           color: 'var(--accent-primary)',
@@ -401,17 +412,21 @@ const FilterBar = ({
           <Box
             sx={{
               display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
               flexWrap: 'wrap',
-              gap: 2,
-              alignItems: 'center',
+              gap: { xs: 1.5, sm: 2 },
+              alignItems: { xs: 'stretch', sm: 'center' },
             }}
           >
             <FormControl
               sx={{
-                minWidth: 200,
+                width: { xs: '100%', sm: 'auto' },
+                minWidth: { xs: '100%', sm: 200 },
                 '& .MuiOutlinedInput-root': {
                   backgroundColor: 'var(--bg-input)',
                   color: 'var(--text-primary)',
+                  fontSize: { xs: '0.9rem', sm: '1rem' },
+                  minHeight: { xs: '48px', sm: '56px' },
                   '& fieldset': {
                     borderColor: 'var(--border-secondary)',
                   },
@@ -424,6 +439,7 @@ const FilterBar = ({
                 },
                 '& .MuiInputLabel-root': {
                   color: 'var(--text-secondary)',
+                  fontSize: { xs: '0.9rem', sm: '1rem' },
                 },
                 '& .MuiInputLabel-root.Mui-focused': {
                   color: 'var(--accent-primary)',
@@ -445,13 +461,17 @@ const FilterBar = ({
               </Select>
             </FormControl>
 
-            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: { xs: 1, sm: 2 }, width: { xs: '100%', sm: 'auto' } }}>
               <ButtonGroup
                 variant="outlined"
                 sx={{
+                  width: { xs: '100%', sm: 'auto' },
                   '& .MuiButton-root': {
                     borderColor: 'var(--border-hover)',
                     color: 'var(--text-primary)',
+                    minHeight: { xs: '44px', sm: '40px' },
+                    fontSize: { xs: '0.875rem', sm: '1rem' },
+                    padding: { xs: '10px 16px', sm: '8px 20px' },
                     '&:hover': {
                       borderColor: 'var(--border-focus)',
                       backgroundColor: 'var(--bg-hover)',
@@ -470,9 +490,10 @@ const FilterBar = ({
                 <Button
                   onClick={() => onViewModeChange('grid')}
                   variant={viewMode === 'grid' ? 'contained' : 'outlined'}
-                  startIcon={<GridViewIcon />}
+                  startIcon={<GridViewIcon sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }} />}
                   sx={{
                     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    flex: { xs: 1, sm: 'none' },
                     ...(viewMode === 'grid' && {
                       background: 'var(--gradient-primary)',
                       '&:hover': {
@@ -486,9 +507,10 @@ const FilterBar = ({
                 <Button
                   onClick={() => onViewModeChange('list')}
                   variant={viewMode === 'list' ? 'contained' : 'outlined'}
-                  startIcon={<ListViewIcon />}
+                  startIcon={<ListViewIcon sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }} />}
                   sx={{
                     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    flex: { xs: 1, sm: 'none' },
                     ...(viewMode === 'list' && {
                       background: 'var(--gradient-primary)',
                       '&:hover': {
@@ -503,11 +525,16 @@ const FilterBar = ({
               <Button
                 onClick={handleRandomAnime}
                 variant="outlined"
-                startIcon={randomAnimeLoading ? <CircularProgress size={16} sx={{ color: 'var(--text-primary)' }} /> : <ShuffleIcon />}
+                fullWidth
+                startIcon={randomAnimeLoading ? <CircularProgress size={16} sx={{ color: 'var(--text-primary)' }} /> : <ShuffleIcon sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }} />}
                 disabled={randomAnimeLoading}
                 sx={{
+                  width: { xs: '100%', sm: 'auto' },
                   borderColor: 'var(--border-hover)',
                   color: 'var(--text-primary)',
+                  minHeight: { xs: '44px', sm: '40px' },
+                  fontSize: { xs: '0.875rem', sm: '1rem' },
+                  padding: { xs: '10px 16px', sm: '8px 20px' },
                   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                   '&:hover': {
                     borderColor: 'var(--border-focus)',
@@ -528,9 +555,14 @@ const FilterBar = ({
                 onClick={handleClearFilters}
                 variant="outlined"
                 size="small"
+                fullWidth
                 sx={{
+                  width: { xs: '100%', sm: 'auto' },
                   borderColor: 'var(--border-hover)',
                   color: 'var(--accent-error)',
+                  minHeight: { xs: '44px', sm: '36px' },
+                  fontSize: { xs: '0.875rem', sm: '0.875rem' },
+                  padding: { xs: '8px 16px', sm: '6px 16px' },
                   '&:hover': {
                     borderColor: 'var(--accent-error)',
                     backgroundColor: 'var(--bg-hover)',
@@ -549,7 +581,7 @@ const FilterBar = ({
               <Box>
                 <Typography
                   variant="subtitle2"
-                  sx={{ color: 'var(--text-secondary)', mb: 1.5, fontWeight: 600 }}
+                  sx={{ color: 'var(--text-secondary)', mb: { xs: 1, sm: 1.5 }, fontWeight: 600, fontSize: { xs: '0.875rem', sm: '0.875rem' } }}
                 >
                   Genres
                 </Typography>
@@ -557,7 +589,7 @@ const FilterBar = ({
                   sx={{
                     display: 'flex',
                     flexWrap: 'wrap',
-                    gap: 1,
+                    gap: { xs: 0.75, sm: 1 },
                   }}
                 >
                   {availableGenres.map((genre) => (
@@ -576,6 +608,9 @@ const FilterBar = ({
                           : 'var(--border-secondary)',
                         color: 'var(--text-primary)',
                         fontWeight: 600,
+                        fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                        height: { xs: '32px', sm: '36px' },
+                        padding: { xs: '0 8px', sm: '0 12px' },
                         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                         '&:hover': {
                           backgroundColor: selectedGenres.includes(genre)

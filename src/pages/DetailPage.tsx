@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { fetchAnimeDetail, clearSelectedAnime } from '../store/slices/animeSlice';
+import { fetchAnimeDetail } from '../store/slices/animeSlice';
 import SkeletonDetail from '../components/SkeletonDetail';
 import { getAnimeImageUrl, getPlaceholderImage } from '../utils/imageUtils';
 import { getRandomAnime } from '../services/api';
@@ -32,18 +32,22 @@ const DetailPage = () => {
   const [randomAnimeLoading, setRandomAnimeLoading] = useState(false);
   const [randomAnimeError, setRandomAnimeError] = useState<string | null>(null);
   const [lastRandomClick, setLastRandomClick] = useState<number>(0);
+  const lastFetchedIdRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (id) {
       const animeId = parseInt(id, 10);
       if (!isNaN(animeId)) {
-        dispatch(fetchAnimeDetail(animeId));
+        // Only fetch if this is a different ID than what we last fetched
+        // This prevents unnecessary refetches when the component re-renders
+        if (lastFetchedIdRef.current !== animeId) {
+          lastFetchedIdRef.current = animeId;
+          dispatch(fetchAnimeDetail(animeId));
+        }
       }
     }
-
-    return () => {
-      dispatch(clearSelectedAnime());
-    };
+    // Note: We don't clear selectedAnime on unmount to allow proper back navigation
+    // Each page will fetch its own data when needed
   }, [id, dispatch]);
 
   const handleBack = () => {
@@ -66,7 +70,9 @@ const DetailPage = () => {
     
     try {
       const randomAnime = await getRandomAnime();
-      navigate(`/anime/${randomAnime.mal_id}`);
+      // Use replace: false to allow proper browser history navigation
+      // This ensures back button works correctly
+      navigate(`/anime/${randomAnime.mal_id}`, { replace: false });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to fetch random anime. Please try again.';
       setRandomAnimeError(errorMessage);
@@ -79,24 +85,30 @@ const DetailPage = () => {
 
   if (loading && !selectedAnime) {
     return (
-      <Container maxWidth="lg" sx={{ py: 4, position: 'relative', zIndex: 1 }}>
+      <Container maxWidth="lg" sx={{ py: { xs: 2, sm: 3, md: 4 }, px: { xs: 1.5, sm: 2, md: 3 }, position: 'relative', zIndex: 1 }}>
         <Box
           sx={{
             display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
             justifyContent: 'space-between',
-            alignItems: 'center',
-            mb: 3,
-            gap: 2,
+            alignItems: { xs: 'stretch', sm: 'center' },
+            mb: { xs: 2, sm: 3 },
+            gap: { xs: 1.5, sm: 2 },
           }}
         >
           <Button
-            startIcon={<ArrowBackIcon />}
+            startIcon={<ArrowBackIcon sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }} />}
             onClick={handleBack}
             variant="outlined"
             disabled
+            fullWidth
             sx={{ 
+              width: { xs: '100%', sm: 'auto' },
               animation: 'fadeInUp 0.5s ease-out',
               opacity: 0.5,
+              minHeight: { xs: '44px', sm: '40px' },
+              fontSize: { xs: '0.875rem', sm: '1rem' },
+              padding: { xs: '10px 16px', sm: '8px 20px' },
             }}
           >
             Back to Search
@@ -104,13 +116,18 @@ const DetailPage = () => {
           <Button
             onClick={handleRandomAnime}
             variant="outlined"
-            startIcon={randomAnimeLoading ? <CircularProgress size={16} sx={{ color: 'var(--text-primary)' }} /> : <ShuffleIcon />}
+            fullWidth
+            startIcon={randomAnimeLoading ? <CircularProgress size={16} sx={{ color: 'var(--text-primary)' }} /> : <ShuffleIcon sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }} />}
             disabled={randomAnimeLoading}
             sx={{
+              width: { xs: '100%', sm: 'auto' },
               borderColor: 'var(--border-hover)',
               color: 'var(--text-primary)',
               transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
               animation: 'fadeInUp 0.5s ease-out',
+              minHeight: { xs: '44px', sm: '40px' },
+              fontSize: { xs: '0.875rem', sm: '1rem' },
+              padding: { xs: '10px 16px', sm: '8px 20px' },
               '&:hover': {
                 borderColor: 'var(--border-focus)',
                 backgroundColor: 'var(--bg-hover)',
@@ -131,16 +148,17 @@ const DetailPage = () => {
 
   if (error) {
     return (
-      <Container maxWidth="lg" sx={{ py: 4, position: 'relative', zIndex: 1 }}>
+      <Container maxWidth="lg" sx={{ py: { xs: 2, sm: 3, md: 4 }, px: { xs: 1.5, sm: 2, md: 3 }, position: 'relative', zIndex: 1 }}>
         <Alert 
           severity="error" 
           sx={{ 
-            mb: 3,
+            mb: { xs: 2, sm: 2.5, md: 3 },
             animation: 'fadeInUp 0.5s ease-out',
             background: 'var(--bg-hover-secondary)',
             border: '1px solid var(--border-hover)',
             borderRadius: 3,
             color: 'var(--text-primary)',
+            fontSize: { xs: '0.875rem', sm: '1rem' },
             '& .MuiAlert-icon': {
               color: 'var(--accent-error)',
             },
@@ -151,17 +169,23 @@ const DetailPage = () => {
         <Box
           sx={{
             display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
             justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: 2,
+            alignItems: { xs: 'stretch', sm: 'center' },
+            gap: { xs: 1.5, sm: 2 },
           }}
         >
           <Button 
-            startIcon={<ArrowBackIcon />} 
+            startIcon={<ArrowBackIcon sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }} />} 
             onClick={handleBack} 
             variant="contained"
+            fullWidth
             sx={{
+              width: { xs: '100%', sm: 'auto' },
               animation: 'fadeInUp 0.6s ease-out',
+              minHeight: { xs: '44px', sm: '40px' },
+              fontSize: { xs: '0.875rem', sm: '1rem' },
+              padding: { xs: '10px 16px', sm: '8px 20px' },
             }}
           >
             Back to Search
@@ -169,13 +193,18 @@ const DetailPage = () => {
           <Button
             onClick={handleRandomAnime}
             variant="outlined"
-            startIcon={randomAnimeLoading ? <CircularProgress size={16} sx={{ color: 'var(--text-primary)' }} /> : <ShuffleIcon />}
+            fullWidth
+            startIcon={randomAnimeLoading ? <CircularProgress size={16} sx={{ color: 'var(--text-primary)' }} /> : <ShuffleIcon sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }} />}
             disabled={randomAnimeLoading}
             sx={{
+              width: { xs: '100%', sm: 'auto' },
               borderColor: 'var(--border-hover)',
               color: 'var(--text-primary)',
               transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
               animation: 'fadeInUp 0.6s ease-out',
+              minHeight: { xs: '44px', sm: '40px' },
+              fontSize: { xs: '0.875rem', sm: '1rem' },
+              padding: { xs: '10px 16px', sm: '8px 20px' },
               '&:hover': {
                 borderColor: 'var(--border-focus)',
                 backgroundColor: 'var(--bg-hover)',
@@ -193,18 +222,21 @@ const DetailPage = () => {
     );
   }
 
-  if (!selectedAnime) {
+  // Only show "not found" if we have an ID, we're not loading, and there's no error
+  // This means the fetch completed but returned nothing
+  if (!selectedAnime && !loading && id && !error) {
     return (
-      <Container maxWidth="lg" sx={{ py: 4, position: 'relative', zIndex: 1 }}>
+      <Container maxWidth="lg" sx={{ py: { xs: 2, sm: 3, md: 4 }, px: { xs: 1.5, sm: 2, md: 3 }, position: 'relative', zIndex: 1 }}>
         <Alert 
           severity="info" 
           sx={{ 
-            mb: 3,
+            mb: { xs: 2, sm: 2.5, md: 3 },
             animation: 'fadeInUp 0.5s ease-out',
             background: 'var(--bg-hover-secondary)',
             border: '1px solid var(--border-hover)',
             borderRadius: 3,
             color: 'var(--text-primary)',
+            fontSize: { xs: '0.875rem', sm: '1rem' },
             '& .MuiAlert-icon': {
               color: 'var(--accent-info)',
             },
@@ -215,17 +247,23 @@ const DetailPage = () => {
         <Box
           sx={{
             display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
             justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: 2,
+            alignItems: { xs: 'stretch', sm: 'center' },
+            gap: { xs: 1.5, sm: 2 },
           }}
         >
           <Button 
-            startIcon={<ArrowBackIcon />} 
+            startIcon={<ArrowBackIcon sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }} />} 
             onClick={handleBack} 
             variant="contained"
+            fullWidth
             sx={{
+              width: { xs: '100%', sm: 'auto' },
               animation: 'fadeInUp 0.6s ease-out',
+              minHeight: { xs: '44px', sm: '40px' },
+              fontSize: { xs: '0.875rem', sm: '1rem' },
+              padding: { xs: '10px 16px', sm: '8px 20px' },
             }}
           >
             Back to Search
@@ -233,13 +271,18 @@ const DetailPage = () => {
           <Button
             onClick={handleRandomAnime}
             variant="outlined"
-            startIcon={randomAnimeLoading ? <CircularProgress size={16} sx={{ color: 'var(--text-primary)' }} /> : <ShuffleIcon />}
+            fullWidth
+            startIcon={randomAnimeLoading ? <CircularProgress size={16} sx={{ color: 'var(--text-primary)' }} /> : <ShuffleIcon sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }} />}
             disabled={randomAnimeLoading}
             sx={{
+              width: { xs: '100%', sm: 'auto' },
               borderColor: 'var(--border-hover)',
               color: 'var(--text-primary)',
               transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
               animation: 'fadeInUp 0.6s ease-out',
+              minHeight: { xs: '44px', sm: '40px' },
+              fontSize: { xs: '0.875rem', sm: '1rem' },
+              padding: { xs: '10px 16px', sm: '8px 20px' },
               '&:hover': {
                 borderColor: 'var(--border-focus)',
                 backgroundColor: 'var(--bg-hover)',
@@ -255,6 +298,12 @@ const DetailPage = () => {
         </Box>
       </Container>
     );
+  }
+
+  // Guard: ensure we have selectedAnime before rendering main content
+  // This should never happen due to early returns above, but TypeScript needs this
+  if (!selectedAnime) {
+    return null;
   }
 
   const imageUrl = getAnimeImageUrl(selectedAnime, true);
@@ -282,22 +331,28 @@ const DetailPage = () => {
           {randomAnimeError}
         </Alert>
       </Snackbar>
-      <Container maxWidth="lg" sx={{ py: 4, position: 'relative', zIndex: 1 }}>
+      <Container maxWidth="lg" sx={{ py: { xs: 2, sm: 3, md: 4 }, px: { xs: 1.5, sm: 2, md: 3 }, position: 'relative', zIndex: 1 }}>
       <Box
         sx={{
           display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
           justifyContent: 'space-between',
-          alignItems: 'center',
-          mb: 3,
-          gap: 2,
+          alignItems: { xs: 'stretch', sm: 'center' },
+          mb: { xs: 2, sm: 3 },
+          gap: { xs: 1.5, sm: 2 },
         }}
       >
         <Button
-          startIcon={<ArrowBackIcon />}
+          startIcon={<ArrowBackIcon sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }} />}
           onClick={handleBack}
           variant="outlined"
-          sx={{ 
+          fullWidth
+          sx={{
+            width: { xs: '100%', sm: 'auto' }, 
             animation: 'fadeInUp 0.5s ease-out',
+            minHeight: { xs: '44px', sm: '40px' },
+            fontSize: { xs: '0.875rem', sm: '1rem' },
+            padding: { xs: '10px 16px', sm: '8px 20px' },
           }}
         >
           Back to Search
@@ -305,11 +360,16 @@ const DetailPage = () => {
         <Button
           onClick={handleRandomAnime}
           variant="outlined"
-          startIcon={randomAnimeLoading ? <CircularProgress size={16} sx={{ color: 'var(--text-primary)' }} /> : <ShuffleIcon />}
+          fullWidth
+          startIcon={randomAnimeLoading ? <CircularProgress size={16} sx={{ color: 'var(--text-primary)' }} /> : <ShuffleIcon sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }} />}
           disabled={randomAnimeLoading}
           sx={{
+            width: { xs: '100%', sm: 'auto' },
             borderColor: 'var(--border-hover)',
             color: 'var(--text-primary)',
+            minHeight: { xs: '44px', sm: '40px' },
+            fontSize: { xs: '0.875rem', sm: '1rem' },
+            padding: { xs: '10px 16px', sm: '8px 20px' },
             transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
             animation: 'fadeInUp 0.5s ease-out',
             '&:hover': {
@@ -330,12 +390,12 @@ const DetailPage = () => {
         elevation={3} 
         className="content-fade-in"
         sx={{ 
-          p: 4,
+          p: { xs: 2, sm: 3, md: 4 },
           background: 'var(--gradient-paper)',
           backdropFilter: 'blur(10px)',
         }}
       >
-        <Grid container spacing={4}>
+        <Grid container spacing={{ xs: 2, sm: 3, md: 4 }}>
           <Grid item xs={12} md={4}>
             <Box
               component="img"
@@ -373,13 +433,14 @@ const DetailPage = () => {
               component="h1" 
               gutterBottom
               sx={{
-                fontSize: { xs: '1.8rem', md: '2.5rem' },
+                fontSize: { xs: '1.4rem', sm: '1.8rem', md: '2.5rem' },
                 fontWeight: 900,
                 background: 'var(--gradient-secondary)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text',
-                mb: 2,
+                mb: { xs: 1.5, sm: 2 },
+                lineHeight: { xs: 1.3, sm: 1.4 },
               }}
             >
               {selectedAnime.title}
@@ -390,7 +451,8 @@ const DetailPage = () => {
                 sx={{ 
                   color: 'var(--text-secondary)',
                   fontWeight: 600,
-                  mb: 1,
+                  fontSize: { xs: '1rem', sm: '1.25rem', md: '1.5rem' },
+                  mb: { xs: 0.75, sm: 1 },
                 }}
                 gutterBottom
               >
@@ -403,6 +465,7 @@ const DetailPage = () => {
                 sx={{ 
                   color: 'var(--text-tertiary)',
                   fontWeight: 500,
+                  fontSize: { xs: '0.875rem', sm: '1rem', md: '1.25rem' },
                 }}
                 gutterBottom
               >
@@ -412,13 +475,13 @@ const DetailPage = () => {
 
             <Divider 
               sx={{ 
-                my: 3,
+                my: { xs: 2, sm: 2.5, md: 3 },
                 borderColor: 'var(--border-secondary)',
                 borderWidth: 1,
               }} 
             />
 
-            <Grid container spacing={2} sx={{ mb: 3 }}>
+            <Grid container spacing={{ xs: 1.5, sm: 2 }} sx={{ mb: { xs: 2, sm: 3 } }}>
               {selectedAnime.score && (
                 <Grid item xs={12} sm={6}>
                   <Box 
@@ -426,20 +489,21 @@ const DetailPage = () => {
                     alignItems="center" 
                     gap={1}
                     sx={{
-                      p: 2,
+                      p: { xs: 1.5, sm: 2 },
                       borderRadius: 2,
                       background: 'var(--bg-active)',
                       border: '1px solid var(--border-secondary)',
                       transition: 'all 0.3s ease',
+                      minHeight: { xs: '48px', sm: 'auto' },
                       '&:hover': {
-                        transform: 'translateX(5px)',
+                        transform: { xs: 'none', sm: 'translateX(5px)' },
                         borderColor: 'var(--border-hover)',
                         boxShadow: '0 4px 15px var(--shadow-glow)',
                       },
                     }}
                   >
-                    <StarIcon sx={{ color: 'var(--accent-primary)', fontSize: '1.5rem' }} />
-                    <Typography variant="body1" sx={{ color: 'var(--text-primary)', fontWeight: 600 }}>
+                    <StarIcon sx={{ color: 'var(--accent-primary)', fontSize: { xs: '1.25rem', sm: '1.5rem' } }} />
+                    <Typography variant="body1" sx={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: { xs: '0.875rem', sm: '1rem' } }}>
                       <strong>Score:</strong> {selectedAnime.score} / 10
                     </Typography>
                   </Box>
@@ -464,8 +528,8 @@ const DetailPage = () => {
                       },
                     }}
                   >
-                    <PlayCircleOutlineIcon sx={{ color: 'var(--accent-tertiary)', fontSize: '1.5rem' }} />
-                    <Typography variant="body1" sx={{ color: 'var(--text-primary)', fontWeight: 600 }}>
+                    <PlayCircleOutlineIcon sx={{ color: 'var(--accent-tertiary)', fontSize: { xs: '1.25rem', sm: '1.5rem' } }} />
+                    <Typography variant="body1" sx={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: { xs: '0.875rem', sm: '1rem' } }}>
                       <strong>Episodes:</strong> {selectedAnime.episodes}
                     </Typography>
                   </Box>
@@ -475,19 +539,22 @@ const DetailPage = () => {
                 <Grid item xs={12} sm={6}>
                   <Box
                     sx={{
-                      p: 2,
+                      p: { xs: 1.5, sm: 2 },
                       borderRadius: 2,
                       background: 'var(--bg-active)',
                       border: '1px solid var(--border-secondary)',
                       transition: 'all 0.3s ease',
+                      minHeight: { xs: '48px', sm: 'auto' },
+                      display: 'flex',
+                      alignItems: 'center',
                       '&:hover': {
-                        transform: 'translateX(5px)',
+                        transform: { xs: 'none', sm: 'translateX(5px)' },
                         borderColor: 'var(--border-hover)',
                         boxShadow: '0 4px 15px var(--shadow-glow)',
                       },
                     }}
                   >
-                    <Typography variant="body1" sx={{ color: 'var(--text-primary)', fontWeight: 600 }}>
+                    <Typography variant="body1" sx={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: { xs: '0.875rem', sm: '1rem' } }}>
                       <strong>Rating:</strong> {selectedAnime.rating}
                     </Typography>
                   </Box>
@@ -497,19 +564,22 @@ const DetailPage = () => {
                 <Grid item xs={12} sm={6}>
                   <Box
                     sx={{
-                      p: 2,
+                      p: { xs: 1.5, sm: 2 },
                       borderRadius: 2,
                       background: 'var(--bg-active)',
                       border: '1px solid var(--border-secondary)',
                       transition: 'all 0.3s ease',
+                      minHeight: { xs: '48px', sm: 'auto' },
+                      display: 'flex',
+                      alignItems: 'center',
                       '&:hover': {
-                        transform: 'translateX(5px)',
+                        transform: { xs: 'none', sm: 'translateX(5px)' },
                         borderColor: 'var(--border-hover)',
                         boxShadow: '0 4px 15px var(--shadow-glow)',
                       },
                     }}
                   >
-                    <Typography variant="body1" sx={{ color: 'var(--text-primary)', fontWeight: 600 }}>
+                    <Typography variant="body1" sx={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: { xs: '0.875rem', sm: '1rem' } }}>
                       <strong>Status:</strong> {selectedAnime.status}
                     </Typography>
                   </Box>
@@ -519,19 +589,22 @@ const DetailPage = () => {
                 <Grid item xs={12} sm={6}>
                   <Box
                     sx={{
-                      p: 2,
+                      p: { xs: 1.5, sm: 2 },
                       borderRadius: 2,
                       background: 'var(--bg-active)',
                       border: '1px solid var(--border-secondary)',
                       transition: 'all 0.3s ease',
+                      minHeight: { xs: '48px', sm: 'auto' },
+                      display: 'flex',
+                      alignItems: 'center',
                       '&:hover': {
-                        transform: 'translateX(5px)',
+                        transform: { xs: 'none', sm: 'translateX(5px)' },
                         borderColor: 'var(--border-hover)',
                         boxShadow: '0 4px 15px var(--shadow-glow)',
                       },
                     }}
                   >
-                    <Typography variant="body1" sx={{ color: 'var(--text-primary)', fontWeight: 600 }}>
+                    <Typography variant="body1" sx={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: { xs: '0.875rem', sm: '1rem' } }}>
                       <strong>Type:</strong> {selectedAnime.type}
                     </Typography>
                   </Box>
@@ -541,19 +614,22 @@ const DetailPage = () => {
                 <Grid item xs={12} sm={6}>
                   <Box
                     sx={{
-                      p: 2,
+                      p: { xs: 1.5, sm: 2 },
                       borderRadius: 2,
                       background: 'var(--bg-active)',
                       border: '1px solid var(--border-secondary)',
                       transition: 'all 0.3s ease',
+                      minHeight: { xs: '48px', sm: 'auto' },
+                      display: 'flex',
+                      alignItems: 'center',
                       '&:hover': {
-                        transform: 'translateX(5px)',
+                        transform: { xs: 'none', sm: 'translateX(5px)' },
                         borderColor: 'var(--border-hover)',
                         boxShadow: '0 4px 15px var(--shadow-glow)',
                       },
                     }}
                   >
-                    <Typography variant="body1" sx={{ color: 'var(--text-primary)', fontWeight: 600 }}>
+                    <Typography variant="body1" sx={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: { xs: '0.875rem', sm: '1rem' } }}>
                       <strong>Duration:</strong> {selectedAnime.duration}
                     </Typography>
                   </Box>
@@ -567,21 +643,22 @@ const DetailPage = () => {
                 alignItems="center" 
                 gap={1} 
                 sx={{ 
-                  mb: 3,
-                  p: 2,
+                  mb: { xs: 2, sm: 3 },
+                  p: { xs: 1.5, sm: 2 },
                   borderRadius: 2,
                   background: 'var(--bg-active)',
                   border: '1px solid var(--border-secondary)',
                   transition: 'all 0.3s ease',
+                  minHeight: { xs: '48px', sm: 'auto' },
                   '&:hover': {
-                    transform: 'translateX(5px)',
+                    transform: { xs: 'none', sm: 'translateX(5px)' },
                     borderColor: 'var(--border-hover)',
                     boxShadow: '0 4px 15px var(--shadow-glow)',
                   },
                 }}
               >
-                <CalendarTodayIcon sx={{ color: 'var(--accent-tertiary)', fontSize: '1.5rem' }} />
-                <Typography variant="body1" sx={{ color: 'var(--text-primary)', fontWeight: 600 }}>
+                <CalendarTodayIcon sx={{ color: 'var(--accent-tertiary)', fontSize: { xs: '1.25rem', sm: '1.5rem' } }} />
+                <Typography variant="body1" sx={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: { xs: '0.875rem', sm: '1rem' } }}>
                   <strong>Air Dates:</strong> {selectedAnime.aired.string}
                 </Typography>
               </Box>
@@ -595,8 +672,8 @@ const DetailPage = () => {
                   sx={{
                     color: 'var(--text-primary)',
                     fontWeight: 700,
-                    mb: 2,
-                    fontSize: '1.3rem',
+                    mb: { xs: 1.5, sm: 2 },
+                    fontSize: { xs: '1rem', sm: '1.2rem', md: '1.3rem' },
                   }}
                 >
                   Genres:
@@ -611,9 +688,11 @@ const DetailPage = () => {
                         border: '1px solid var(--border-secondary)',
                         color: 'var(--text-primary)',
                         fontWeight: 600,
-                        fontSize: '0.9rem',
+                        fontSize: { xs: '0.75rem', sm: '0.875rem', md: '0.9rem' },
+                        height: { xs: '28px', sm: '32px', md: '36px' },
+                        padding: { xs: '0 8px', sm: '0 10px', md: '0 12px' },
                         '&:hover': {
-                          transform: 'scale(1.1)',
+                          transform: { xs: 'scale(1.05)', sm: 'scale(1.1)' },
                         },
                       }}
                     />
@@ -630,8 +709,8 @@ const DetailPage = () => {
                   sx={{
                     color: 'var(--text-primary)',
                     fontWeight: 700,
-                    mb: 2,
-                    fontSize: '1.3rem',
+                    mb: { xs: 1.5, sm: 2 },
+                    fontSize: { xs: '1rem', sm: '1.2rem', md: '1.3rem' },
                   }}
                 >
                   Studios:
@@ -646,9 +725,11 @@ const DetailPage = () => {
                         border: '1px solid var(--border-secondary)',
                         color: 'var(--text-primary)',
                         fontWeight: 600,
-                        fontSize: '0.9rem',
+                        fontSize: { xs: '0.75rem', sm: '0.875rem', md: '0.9rem' },
+                        height: { xs: '28px', sm: '32px', md: '36px' },
+                        padding: { xs: '0 8px', sm: '0 10px', md: '0 12px' },
                         '&:hover': {
-                          transform: 'scale(1.1)',
+                          transform: { xs: 'scale(1.05)', sm: 'scale(1.1)' },
                         },
                       }}
                     />
@@ -660,7 +741,7 @@ const DetailPage = () => {
             {selectedAnime.synopsis && (
               <Box
                 sx={{
-                  p: 3,
+                  p: { xs: 2, sm: 2.5, md: 3 },
                   borderRadius: 3,
                   background: 'var(--gradient-paper)',
                   border: '1px solid var(--border-primary)',
@@ -672,8 +753,8 @@ const DetailPage = () => {
                   sx={{
                     color: 'var(--text-primary)',
                     fontWeight: 700,
-                    mb: 2,
-                    fontSize: '1.3rem',
+                    mb: { xs: 1.5, sm: 2 },
+                    fontSize: { xs: '1rem', sm: '1.2rem', md: '1.3rem' },
                   }}
                 >
                   Synopsis:
@@ -683,8 +764,8 @@ const DetailPage = () => {
                   paragraph
                   sx={{
                     color: 'var(--text-secondary)',
-                    lineHeight: 1.8,
-                    fontSize: '1rem',
+                    lineHeight: { xs: 1.6, sm: 1.8 },
+                    fontSize: { xs: '0.875rem', sm: '0.9375rem', md: '1rem' },
                   }}
                 >
                   {selectedAnime.synopsis}

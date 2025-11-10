@@ -59,9 +59,9 @@ const Pagination = ({
     <Paper
       elevation={3}
       sx={{
-        p: 3,
-        mt: 4,
-        mb: 2,
+        p: { xs: 2, sm: 2.5, md: 3 },
+        mt: { xs: 2, sm: 3, md: 4 },
+        mb: { xs: 1.5, sm: 2 },
         animation: 'fadeInUp 0.6s ease-out',
         background: 'var(--gradient-paper)',
         backdropFilter: 'blur(10px)',
@@ -113,6 +113,8 @@ const Pagination = ({
             color: 'var(--text-secondary)',
             fontFamily: '"Poppins", sans-serif',
             fontWeight: 500,
+            fontSize: { xs: '0.875rem', sm: '1rem' },
+            textAlign: { xs: 'center', sm: 'left' },
           }}
         >
           Showing <strong style={{ color: 'var(--accent-primary)' }}>{startItem}</strong> to{' '}
@@ -134,11 +136,14 @@ const Pagination = ({
           <Button
             onClick={handlePrevPage}
             disabled={currentPage === 1 || loading}
-            startIcon={<ChevronLeftIcon />}
+            startIcon={<ChevronLeftIcon sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }} />}
             variant="outlined"
             sx={{
               borderColor: 'var(--border-hover)',
               color: 'var(--text-primary)',
+              minHeight: { xs: '44px', sm: '40px' },
+              fontSize: { xs: '0.875rem', sm: '1rem' },
+              padding: { xs: '10px 16px', sm: '8px 20px' },
               '&:hover': {
                 borderColor: 'var(--border-focus)',
                 backgroundColor: 'var(--bg-hover)',
@@ -160,7 +165,7 @@ const Pagination = ({
             onChange={handlePageChange}
             disabled={loading}
             color="primary"
-            size="large"
+            size="medium"
             siblingCount={1}
             boundaryCount={1}
             sx={{
@@ -195,11 +200,14 @@ const Pagination = ({
           <Button
             onClick={handleNextPage}
             disabled={currentPage === totalPages || loading}
-            endIcon={<ChevronRightIcon />}
+            endIcon={<ChevronRightIcon sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }} />}
             variant="outlined"
             sx={{
               borderColor: 'var(--border-hover)',
               color: 'var(--text-primary)',
+              minHeight: { xs: '44px', sm: '40px' },
+              fontSize: { xs: '0.875rem', sm: '1rem' },
+              padding: { xs: '10px 16px', sm: '8px 20px' },
               '&:hover': {
                 borderColor: 'var(--border-focus)',
                 backgroundColor: 'var(--bg-hover)',
@@ -222,6 +230,8 @@ const Pagination = ({
             color: 'var(--text-tertiary)',
             fontFamily: '"Poppins", sans-serif',
             fontWeight: 500,
+            fontSize: { xs: '0.75rem', sm: '0.875rem' },
+            textAlign: { xs: 'center', sm: 'right' },
           }}
         >
           Page <strong style={{ color: 'var(--accent-primary)' }}>{currentPage}</strong> of{' '}

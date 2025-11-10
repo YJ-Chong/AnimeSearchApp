@@ -261,12 +261,12 @@ const SearchPage = () => {
   }, [searchResults, selectedGenres, sortOption, debouncedGenreSearchQuery]);
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4, position: 'relative', zIndex: 1 }}>
+    <Container maxWidth="lg" sx={{ py: { xs: 2, sm: 3, md: 4 }, px: { xs: 1.5, sm: 2, md: 3 }, position: 'relative', zIndex: 1 }}>
       <Paper 
         elevation={3} 
         sx={{ 
-          p: 4, 
-          mb: 4,
+          p: { xs: 2, sm: 3, md: 4 }, 
+          mb: { xs: 2, sm: 3, md: 4 },
           animation: 'fadeInUp 0.6s ease-out',
           background: 'var(--gradient-paper)',
           backdropFilter: 'blur(10px)',
@@ -278,10 +278,10 @@ const SearchPage = () => {
           gutterBottom 
           align="center" 
           sx={{ 
-            mb: 3,
-            fontSize: { xs: '2rem', md: '3rem' },
+            mb: { xs: 2, sm: 2.5, md: 3 },
+            fontSize: { xs: '1.5rem', sm: '2rem', md: '3rem' },
             textShadow: '0 0 30px var(--shadow-glow)',
-            letterSpacing: '2px',
+            letterSpacing: { xs: '1px', md: '2px' },
             color: 'var(--text-primary)',
           }}
         >
@@ -308,12 +308,13 @@ const SearchPage = () => {
         <Alert 
           severity="error" 
           sx={{ 
-            mb: 3,
+            mb: { xs: 2, sm: 2.5, md: 3 },
             animation: 'fadeInUp 0.5s ease-out',
             background: 'var(--bg-hover-secondary)',
             border: '1px solid var(--border-hover)',
             borderRadius: 3,
             color: 'var(--text-primary)',
+            fontSize: { xs: '0.875rem', sm: '1rem' },
             '& .MuiAlert-icon': {
               color: 'var(--accent-error)',
             },
@@ -369,7 +370,7 @@ const SearchPage = () => {
           }}
         >
           {viewMode === 'grid' ? (
-            <Grid container spacing={3}>
+            <Grid container spacing={{ xs: 2, sm: 2.5, md: 3 }}>
               {filteredAndSortedResults.map((anime, index) => (
                 <Grid 
                   item 
@@ -408,14 +409,14 @@ const SearchPage = () => {
                         sx={{
                           position: 'relative',
                           overflow: 'hidden',
-                          height: 300,
+                          height: { xs: 250, sm: 280, md: 300 },
                           background: 'var(--bg-active)',
                         }}
                       >
                         <CardMedia
                           className="anime-image"
                           component="img"
-                          height="300"
+                          height="100%"
                           image={getAnimeImageUrl(anime, true)}
                           alt={anime.title}
                           loading="lazy"
@@ -456,7 +457,7 @@ const SearchPage = () => {
                               sx={{ 
                                 color: 'var(--text-primary)',
                                 fontWeight: 700,
-                                fontSize: '0.9rem',
+                                fontSize: { xs: '0.8rem', sm: '0.85rem', md: '0.9rem' },
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: 0.5,
@@ -482,7 +483,7 @@ const SearchPage = () => {
                           sx={{
                             fontWeight: 700,
                             color: 'var(--text-primary)',
-                            fontSize: '1.1rem',
+                            fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
                             mb: 1,
                             lineHeight: 1.4,
                             minHeight: '1.5em',
@@ -493,7 +494,7 @@ const SearchPage = () => {
                           noWrap
                           sx={{ 
                             color: 'var(--text-secondary)',
-                            fontSize: '0.9rem',
+                            fontSize: { xs: '0.8rem', sm: '0.85rem', md: '0.9rem' },
                           }}
                         >
                           {anime.title_english || anime.title_japanese || 'N/A'}
@@ -543,9 +544,10 @@ const SearchPage = () => {
                     >
                       <ListItemAvatar
                         sx={{
-                          minWidth: 120,
-                          height: 180,
-                          mr: 2,
+                          minWidth: { xs: 80, sm: 100, md: 120 },
+                          width: { xs: 80, sm: 100, md: 120 },
+                          height: { xs: 120, sm: 150, md: 180 },
+                          mr: { xs: 1.5, sm: 2 },
                         }}
                       >
                         <Avatar
@@ -586,6 +588,7 @@ const SearchPage = () => {
                                 fontWeight: 700,
                                 color: 'var(--text-primary)',
                                 flex: 1,
+                                fontSize: { xs: '0.875rem', sm: '1rem', md: '1.25rem' },
                               }}
                             >
                               {anime.title}
@@ -606,7 +609,7 @@ const SearchPage = () => {
                                   sx={{
                                     color: 'var(--text-primary)',
                                     fontWeight: 700,
-                                    fontSize: '0.9rem',
+                                    fontSize: { xs: '0.8rem', sm: '0.85rem', md: '0.9rem' },
                                     display: 'flex',
                                     alignItems: 'center',
                                     gap: 0.5,
@@ -625,6 +628,7 @@ const SearchPage = () => {
                               sx={{
                                 color: 'var(--text-secondary)',
                                 mb: 1,
+                                fontSize: { xs: '0.75rem', sm: '0.875rem' },
                               }}
                             >
                               {anime.title_english || anime.title_japanese || 'N/A'}
@@ -635,10 +639,11 @@ const SearchPage = () => {
                                 sx={{
                                   color: 'var(--text-tertiary)',
                                   display: '-webkit-box',
-                                  WebkitLineClamp: 2,
+                                  WebkitLineClamp: { xs: 2, sm: 2 },
                                   WebkitBoxOrient: 'vertical',
                                   overflow: 'hidden',
                                   mb: 1,
+                                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
                                 }}
                               >
                                 {anime.synopsis}
@@ -652,10 +657,11 @@ const SearchPage = () => {
                                   sx={{
                                     color: 'var(--accent-primary)',
                                     backgroundColor: 'var(--bg-hover)',
-                                    px: 1,
-                                    py: 0.25,
+                                    px: { xs: 0.75, sm: 1 },
+                                    py: { xs: 0.2, sm: 0.25 },
                                     borderRadius: 1,
                                     border: '1px solid var(--border-secondary)',
+                                    fontSize: { xs: '0.65rem', sm: '0.75rem' },
                                   }}
                                 >
                                   {genre.name}

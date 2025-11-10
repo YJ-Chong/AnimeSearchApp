@@ -34,12 +34,12 @@ const Recommendations = () => {
 
   if (recommendationsLoading && recommendations.length === 0) {
     return (
-      <Box sx={{ mt: 6 }}>
+      <Box sx={{ mt: { xs: 3, sm: 4, md: 6 } }}>
         <Paper
           elevation={3}
           sx={{
-            p: 4,
-            mb: 4,
+            p: { xs: 2, sm: 3, md: 4 },
+            mb: { xs: 2, sm: 3, md: 4 },
             animation: 'fadeInUp 0.6s ease-out',
             background: 'var(--gradient-paper)',
             backdropFilter: 'blur(10px)',
@@ -50,16 +50,16 @@ const Recommendations = () => {
             component="h2"
             gutterBottom
             sx={{
-              mb: 3,
-              fontSize: { xs: '1.75rem', md: '2.25rem' },
+              mb: { xs: 2, sm: 2.5, md: 3 },
+              fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.25rem' },
               textShadow: '0 0 30px var(--shadow-glow)',
-              letterSpacing: '1px',
+              letterSpacing: { xs: '0.5px', md: '1px' },
               color: 'var(--text-primary)',
             }}
           >
             Recommendations
           </Typography>
-          <Grid container spacing={3}>
+          <Grid container spacing={{ xs: 2, sm: 2.5, md: 3 }}>
             {Array.from({ length: 8 }).map((_, index) => (
               <Grid
                 item
@@ -86,32 +86,32 @@ const Recommendations = () => {
   }
 
   return (
-    <Box sx={{ mt: 6 }}>
-      <Paper
-        elevation={3}
-        sx={{
-          p: 4,
-          mb: 4,
-          animation: 'fadeInUp 0.6s ease-out',
-          background: 'var(--gradient-paper)',
-          backdropFilter: 'blur(10px)',
-        }}
-      >
-        <Typography
-          variant="h4"
-          component="h2"
-          gutterBottom
+    <Box sx={{ mt: { xs: 3, sm: 4, md: 6 } }}>
+        <Paper
+          elevation={3}
           sx={{
-            mb: 3,
-            fontSize: { xs: '1.75rem', md: '2.25rem' },
-            textShadow: '0 0 30px var(--shadow-glow)',
-            letterSpacing: '1px',
-            color: 'var(--text-primary)',
+            p: { xs: 2, sm: 3, md: 4 },
+            mb: { xs: 2, sm: 3, md: 4 },
+            animation: 'fadeInUp 0.6s ease-out',
+            background: 'var(--gradient-paper)',
+            backdropFilter: 'blur(10px)',
           }}
         >
-          Recommendations
-        </Typography>
-        <Grid container spacing={3}>
+          <Typography
+            variant="h4"
+            component="h2"
+            gutterBottom
+            sx={{
+              mb: { xs: 2, sm: 2.5, md: 3 },
+              fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.25rem' },
+              textShadow: '0 0 30px var(--shadow-glow)',
+              letterSpacing: { xs: '0.5px', md: '1px' },
+              color: 'var(--text-primary)',
+            }}
+          >
+            Recommendations
+          </Typography>
+          <Grid container spacing={{ xs: 2, sm: 2.5, md: 3 }}>
           {recommendations.map((anime, index) => (
             <Grid
               item
@@ -147,18 +147,18 @@ const Recommendations = () => {
                   }}
                 >
                   <Box
-                    sx={{
-                      position: 'relative',
-                      overflow: 'hidden',
-                      height: 300,
-                      background: 'var(--bg-active)',
-                    }}
-                  >
-                    <CardMedia
-                      className="anime-image"
-                      component="img"
-                      height="300"
-                      image={getAnimeImageUrl(anime, true)}
+                        sx={{
+                          position: 'relative',
+                          overflow: 'hidden',
+                          height: { xs: 250, sm: 280, md: 300 },
+                          background: 'var(--bg-active)',
+                        }}
+                      >
+                        <CardMedia
+                          className="anime-image"
+                          component="img"
+                          height="100%"
+                          image={getAnimeImageUrl(anime, true)}
                       alt={anime.title}
                       loading="lazy"
                       onError={(e) => {
