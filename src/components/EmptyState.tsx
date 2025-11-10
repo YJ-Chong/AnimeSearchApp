@@ -135,7 +135,6 @@ const EmptyState = ({
             variant="contained"
             startIcon={<ClearAllIcon sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }} />}
             onClick={onClearFilters}
-            fullWidth={xs => xs ? true : false}
             sx={{
               background: 'var(--gradient-primary)',
               color: 'var(--text-primary)',
@@ -165,7 +164,6 @@ const EmptyState = ({
             variant="outlined"
             startIcon={<SearchOffIcon sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }} />}
             onClick={onTryDifferent}
-            fullWidth={xs => xs ? true : false}
             sx={{
               borderColor: 'var(--border-hover)',
               color: 'var(--text-primary)',
@@ -194,7 +192,6 @@ const EmptyState = ({
             variant="outlined"
             startIcon={<FilterListIcon sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }} />}
             onClick={onClearFilters}
-            fullWidth={xs => xs ? true : false}
             sx={{
               borderColor: 'var(--border-hover)',
               color: 'var(--text-primary)',
