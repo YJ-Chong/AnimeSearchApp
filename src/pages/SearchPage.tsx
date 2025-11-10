@@ -257,79 +257,40 @@ const SearchPage = () => {
         </Alert>
       )}
 
-      {loading && (
-        <Box>
-          {/* Show skeleton cards if we have a query or previous results */}
-          {(query || searchQuery || searchResults.length > 0) ? (
-            <Box
+      {loading && (query || searchQuery) && (
+        <Box
+          sx={{
+            animation: 'fadeIn 0.3s ease-in',
+          }}
+        >
+          {viewMode === 'grid' ? (
+            <Grid container spacing={3}>
+              {Array.from({ length: ITEMS_PER_PAGE }).map((_, index) => (
+                <Grid 
+                  item 
+                  xs={12} 
+                  sm={6} 
+                  md={4} 
+                  lg={3} 
+                  key={`skeleton-${index}`}
+                  sx={{
+                    animation: `fadeInUp 0.4s ease-out ${index * 0.03}s both`,
+                  }}
+                >
+                  <SkeletonCard index={index} />
+                </Grid>
+              ))}
+            </Grid>
+          ) : (
+            <List
               sx={{
                 animation: 'fadeIn 0.3s ease-in',
               }}
             >
-              {viewMode === 'grid' ? (
-                <Grid container spacing={3}>
-                  {Array.from({ length: ITEMS_PER_PAGE }).map((_, index) => (
-                    <Grid 
-                      item 
-                      xs={12} 
-                      sm={6} 
-                      md={4} 
-                      lg={3} 
-                      key={`skeleton-${index}`}
-                      sx={{
-                        animation: `fadeInUp 0.4s ease-out ${index * 0.03}s both`,
-                      }}
-                    >
-                      <SkeletonCard index={index} />
-                    </Grid>
-                  ))}
-                </Grid>
-              ) : (
-                <List
-                  sx={{
-                    animation: 'fadeIn 0.3s ease-in',
-                  }}
-                >
-                  {Array.from({ length: ITEMS_PER_PAGE }).map((_, index) => (
-                    <SkeletonListItem key={`skeleton-list-${index}`} index={index} />
-                  ))}
-                </List>
-              )}
-            </Box>
-          ) : (
-            /* Centered GIF loader with loading text for initial load (no query, no results) */
-            <Box 
-              display="flex" 
-              flexDirection="column"
-              alignItems="center"
-              justifyContent="center" 
-              py={8}
-              sx={{
-                animation: 'fadeIn 0.5s ease-in',
-              }}
-            >
-              <Box
-                component="img"
-                src="https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExNmpqNDZscndnZnpzYnB0ZGx0M2I2aDF5dTU0Z2hjYWpvczVwNmxzMiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/yASFCj2K0MGeASqSom/giphy.gif"
-                alt="Loading..."
-                sx={{
-                  width: 200,
-                  height: 200,
-                  objectFit: 'contain',
-                  filter: 'drop-shadow(0 0 10px var(--shadow-glow))',
-                }}
-              />
-              <Typography 
-                variant="h6" 
-                sx={{ 
-                  mt: 3,
-                  color: 'var(--text-secondary)',
-                  fontFamily: '"Poppins", sans-serif',
-                }}
-              >
-                {query || searchQuery ? 'Searching for anime...' : 'Loading...'}
-              </Typography>
-            </Box>
+              {Array.from({ length: ITEMS_PER_PAGE }).map((_, index) => (
+                <SkeletonListItem key={`skeleton-list-${index}`} index={index} />
+              ))}
+            </List>
           )}
         </Box>
       )}

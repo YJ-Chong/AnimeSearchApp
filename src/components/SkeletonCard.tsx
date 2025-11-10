@@ -4,7 +4,7 @@ interface SkeletonCardProps {
   index?: number;
 }
 
-const SkeletonCard = ({ index = 0 }: SkeletonCardProps) => {
+const SkeletonCard = ({}: SkeletonCardProps) => {
   return (
     <Card
       sx={{

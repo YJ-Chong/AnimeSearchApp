@@ -4,7 +4,7 @@ interface SkeletonListItemProps {
   index?: number;
 }
 
-const SkeletonListItem = ({ index = 0 }: SkeletonListItemProps) => {
+const SkeletonListItem = ({}: SkeletonListItemProps) => {
   return (
     <ListItem
       disablePadding

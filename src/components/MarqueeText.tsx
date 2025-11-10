@@ -12,7 +12,7 @@ const MarqueeText = ({
   text, 
   triggerOnHover = true, 
   speed = 60,
-  sx,
+  sx: typographySx,
   ...typographyProps 
 }: MarqueeTextProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -119,7 +119,6 @@ const MarqueeText = ({
         width: '100%',
         overflow: 'hidden',
         position: 'relative',
-        ...sx,
       }}
     >
       {/* Hidden span to measure text width */}
@@ -130,9 +129,9 @@ const MarqueeText = ({
           position: 'absolute',
           visibility: 'hidden',
           whiteSpace: 'nowrap',
-          fontSize: typographyProps.sx?.fontSize || '1.1rem',
-          fontWeight: typographyProps.sx?.fontWeight || 700,
-          fontFamily: typographyProps.sx?.fontFamily || 'inherit',
+          fontSize: (typographySx as any)?.fontSize || '1.1rem',
+          fontWeight: (typographySx as any)?.fontWeight || 700,
+          fontFamily: (typographySx as any)?.fontFamily || 'inherit',
         }}
       >
         {text}
@@ -154,7 +153,7 @@ const MarqueeText = ({
           sx={{
             display: 'inline-block',
             whiteSpace: 'nowrap',
-            ...typographyProps.sx,
+            ...typographySx,
           }}
         >
           {text}
@@ -166,7 +165,7 @@ const MarqueeText = ({
               display: 'inline-block',
               whiteSpace: 'nowrap',
               marginLeft: `${gap}px`,
-              ...typographyProps.sx,
+              ...typographySx,
             }}
           >
             {text}
