@@ -109,7 +109,7 @@ const Recommendations = () => {
               color: 'var(--text-primary)',
             }}
           >
-            Recommendations
+            Highest Rated Anime
           </Typography>
           <Grid container spacing={{ xs: 2, sm: 2.5, md: 3 }}>
           {recommendations.map((anime, index) => (

@@ -268,17 +268,6 @@ const EmptyState = ({
           opacity: 0.6,
         }}
       >
-        {['🎌', '🌸', '⚔️', '🎭', '🌟'].map((emoji, index) => (
-          <Box
-            key={index}
-            sx={{
-              fontSize: { xs: '1.2rem', sm: '1.35rem', md: '1.5rem' },
-              animation: `fadeInUp 0.6s ease-out ${index * 0.1}s both`,
-            }}
-          >
-            {emoji}
-          </Box>
-        ))}
       </Box>
     </Paper>
   );
