@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { fetchAnimeSearch } from '../store/slices/animeSlice';
+import { fetchAnimeSearch, fetchTopAnimeForFiltering } from '../store/slices/animeSlice';
 import MarqueeText from '../components/MarqueeText';
 import FilterBar, { SortOption, ViewMode } from '../components/FilterBar';
 import Pagination from '../components/Pagination';
@@ -34,6 +34,8 @@ const ITEMS_PER_PAGE = 25; // Default items per page
 
 const SearchPage = () => {
   const [query, setQuery] = useState('');
+  const [genreSearchQuery, setGenreSearchQuery] = useState('');
+  const [debouncedGenreSearchQuery, setDebouncedGenreSearchQuery] = useState('');
   const [sortOption, setSortOption] = useState<SortOption>('rating-high');
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
@@ -43,6 +45,7 @@ const SearchPage = () => {
   const { searchResults, loading, error, pagination, searchQuery } = useAppSelector((state) => state.anime);
   const debounceTimerRef = useRef<number | null>(null);
   const previousRequestRef = useRef<{ abort: () => void } | null>(null);
+  const genreDebounceTimerRef = useRef<number | null>(null);
 
   // Restore query from Redux state on mount (for page refresh scenarios)
   // This ensures that if you refresh the page, the query is restored and search is triggered
@@ -62,10 +65,31 @@ const SearchPage = () => {
     }
   }, []); // Only run on mount
 
-  // Reset to page 1 when query changes
+  // Reset to page 1 when any search query changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [query]);
+  }, [query, genreSearchQuery]);
+
+  // Debounce genre search query
+  useEffect(() => {
+    // Clear previous debounce timer
+    if (genreDebounceTimerRef.current) {
+      clearTimeout(genreDebounceTimerRef.current);
+    }
+
+    // Set up debounce timer
+    genreDebounceTimerRef.current = window.setTimeout(() => {
+      setDebouncedGenreSearchQuery(genreSearchQuery);
+    }, DEBOUNCE_DELAY);
+
+    // Cleanup function
+    return () => {
+      if (genreDebounceTimerRef.current) {
+        clearTimeout(genreDebounceTimerRef.current);
+      }
+    };
+  }, [genreSearchQuery]);
+
 
   // Sync currentPage with server pagination response
   // This handles cases where server corrects invalid page numbers (e.g., page 100 when only 10 pages exist)
@@ -81,6 +105,7 @@ const SearchPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pagination?.currentPage]);
 
+  // Unified search effect - handles all three search bars independently
   useEffect(() => {
     // Clear previous debounce timer
     if (debounceTimerRef.current) {
@@ -94,22 +119,46 @@ const SearchPage = () => {
     }
 
     const trimmedQuery = query.trim();
+    const trimmedGenreQuery = debouncedGenreSearchQuery.trim();
 
-    // If query is empty, clear results
-    if (!trimmedQuery) {
+    // Determine if we should perform an API search
+    // API search is triggered if any search bar has input
+    const hasAnySearch = trimmedQuery || trimmedGenreQuery;
+
+    // If no search criteria at all, don't perform search
+    if (!hasAnySearch) {
       return;
     }
 
     // Set up debounce timer
     debounceTimerRef.current = window.setTimeout(() => {
-      // Dispatch search action with pagination parameters
-      const requestPromise = dispatch(
-        fetchAnimeSearch({
-          query: trimmedQuery,
-          limit: ITEMS_PER_PAGE,
-          page: currentPage,
-        })
-      );
+      // Strategy:
+      // 1. If main query exists, use it for API search (most specific)
+      // 2. If only genre exists, fetch top anime to have data to filter
+      // 3. Client-side filtering will apply genre filters regardless
+      
+      let requestPromise;
+      
+      if (trimmedQuery) {
+        // Main query exists - use it for API search
+        requestPromise = dispatch(
+          fetchAnimeSearch({
+            query: trimmedQuery,
+            limit: ITEMS_PER_PAGE,
+            page: currentPage,
+          })
+        );
+      } else {
+        // Only genre search - fetch top anime to have data to filter
+        // Jikan API has a limit of 25 items per page for top anime
+        requestPromise = dispatch(
+          fetchTopAnimeForFiltering({
+            limit: ITEMS_PER_PAGE, // Use standard page size (25)
+            page: currentPage,
+          })
+        );
+      }
+      
       const requestAbort = { abort: () => requestPromise.abort() };
       previousRequestRef.current = requestAbort;
       
@@ -131,7 +180,7 @@ const SearchPage = () => {
         previousRequestRef.current = null;
       }
     };
-  }, [query, currentPage, dispatch]);
+  }, [query, debouncedGenreSearchQuery, currentPage, dispatch]);
 
   const handleCardClick = (id: number) => {
     navigate(`/anime/${id}`);
@@ -147,11 +196,15 @@ const SearchPage = () => {
     setSelectedGenres([]);
     setSortOption('rating-high');
     setQuery('');
+    setGenreSearchQuery('');
+    setDebouncedGenreSearchQuery('');
     setCurrentPage(1);
   };
 
   const handleTryDifferent = () => {
     setQuery('');
+    setGenreSearchQuery('');
+    setDebouncedGenreSearchQuery('');
     setSelectedGenres([]);
     setSortOption('rating-high');
     setCurrentPage(1);
@@ -166,6 +219,16 @@ const SearchPage = () => {
       filtered = filtered.filter((anime) =>
         selectedGenres.some((genre) =>
           anime.genres.some((g) => g.name === genre)
+        )
+      );
+    }
+
+    // Apply genre search filter (using debounced value)
+    if (debouncedGenreSearchQuery.trim()) {
+      const genreSearchLower = debouncedGenreSearchQuery.toLowerCase().trim();
+      filtered = filtered.filter((anime) =>
+        anime.genres.some((g) =>
+          g.name.toLowerCase().includes(genreSearchLower)
         )
       );
     }
@@ -195,7 +258,7 @@ const SearchPage = () => {
     });
 
     return filtered;
-  }, [searchResults, selectedGenres, sortOption]);
+  }, [searchResults, selectedGenres, sortOption, debouncedGenreSearchQuery]);
 
   return (
     <Container maxWidth="lg" sx={{ py: 4, position: 'relative', zIndex: 1 }}>
@@ -231,6 +294,8 @@ const SearchPage = () => {
         animeList={searchResults}
         searchQuery={query}
         onSearchChange={setQuery}
+        genreSearchQuery={genreSearchQuery}
+        onGenreSearchChange={setGenreSearchQuery}
         onSortChange={setSortOption}
         onGenreFilterChange={setSelectedGenres}
         onViewModeChange={setViewMode}
@@ -258,7 +323,7 @@ const SearchPage = () => {
         </Alert>
       )}
 
-      {loading && (query || searchQuery) && (
+      {loading && (query || searchQuery || genreSearchQuery) && (
         <Box
           sx={{
             animation: 'fadeIn 0.3s ease-in',
@@ -630,27 +695,27 @@ const SearchPage = () => {
       {!loading && !error && (
         <>
           {/* Filtered out results - user has filters applied but no matches */}
-          {filteredAndSortedResults.length === 0 && query && searchResults.length > 0 && (
+          {filteredAndSortedResults.length === 0 && (query || genreSearchQuery) && searchResults.length > 0 && (
             <EmptyState
               type="filtered"
               onClearFilters={handleClearFilters}
               onTryDifferent={handleTryDifferent}
-              hasFilters={selectedGenres.length > 0 || sortOption !== 'rating-high'}
+              hasFilters={selectedGenres.length > 0 || sortOption !== 'rating-high' || !!genreSearchQuery}
             />
           )}
 
           {/* No search results - user searched but got no results */}
-          {searchResults.length === 0 && (query || searchQuery) && (
+          {searchResults.length === 0 && (query || searchQuery || genreSearchQuery) && (
             <EmptyState
               type="no-results"
               onClearFilters={handleClearFilters}
               onTryDifferent={handleTryDifferent}
-              hasFilters={selectedGenres.length > 0 || sortOption !== 'rating-high'}
+              hasFilters={selectedGenres.length > 0 || sortOption !== 'rating-high' || !!genreSearchQuery}
             />
           )}
 
           {/* Initial state - no query, no results */}
-          {searchResults.length === 0 && !query && !searchQuery && (
+          {searchResults.length === 0 && !query && !searchQuery && !genreSearchQuery && (
             <EmptyState
               type="initial"
               onClearFilters={handleClearFilters}

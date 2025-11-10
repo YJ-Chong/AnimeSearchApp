@@ -1,9 +1,10 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchAnimeDetail, clearSelectedAnime } from '../store/slices/animeSlice';
 import SkeletonDetail from '../components/SkeletonDetail';
 import { getAnimeImageUrl, getPlaceholderImage } from '../utils/imageUtils';
+import { getRandomAnime } from '../services/api';
 import {
   Container,
   Box,
@@ -14,17 +15,23 @@ import {
   Chip,
   Grid,
   Divider,
+  CircularProgress,
+  Snackbar,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
 import StarIcon from '@mui/icons-material/Star';
+import ShuffleIcon from '@mui/icons-material/Shuffle';
 
 const DetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { selectedAnime, loading, error } = useAppSelector((state) => state.anime);
+  const [randomAnimeLoading, setRandomAnimeLoading] = useState(false);
+  const [randomAnimeError, setRandomAnimeError] = useState<string | null>(null);
+  const [lastRandomClick, setLastRandomClick] = useState<number>(0);
 
   useEffect(() => {
     if (id) {
@@ -43,22 +50,80 @@ const DetailPage = () => {
     navigate('/');
   };
 
+  const handleRandomAnime = async () => {
+    // Rate limiting: prevent clicks too frequently (minimum 1 second between clicks)
+    const now = Date.now();
+    const timeSinceLastClick = now - lastRandomClick;
+    if (timeSinceLastClick < 1000) {
+      setRandomAnimeError('Please wait a moment before trying again.');
+      setTimeout(() => setRandomAnimeError(null), 3000);
+      return;
+    }
+    
+    setLastRandomClick(now);
+    setRandomAnimeError(null);
+    setRandomAnimeLoading(true);
+    
+    try {
+      const randomAnime = await getRandomAnime();
+      navigate(`/anime/${randomAnime.mal_id}`);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch random anime. Please try again.';
+      setRandomAnimeError(errorMessage);
+      // Clear error after 5 seconds
+      setTimeout(() => setRandomAnimeError(null), 5000);
+    } finally {
+      setRandomAnimeLoading(false);
+    }
+  };
+
   if (loading && !selectedAnime) {
     return (
       <Container maxWidth="lg" sx={{ py: 4, position: 'relative', zIndex: 1 }}>
-        <Button
-          startIcon={<ArrowBackIcon />}
-          onClick={handleBack}
-          variant="outlined"
-          disabled
-          sx={{ 
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
             mb: 3,
-            animation: 'fadeInUp 0.5s ease-out',
-            opacity: 0.5,
+            gap: 2,
           }}
         >
-          Back to Search
-        </Button>
+          <Button
+            startIcon={<ArrowBackIcon />}
+            onClick={handleBack}
+            variant="outlined"
+            disabled
+            sx={{ 
+              animation: 'fadeInUp 0.5s ease-out',
+              opacity: 0.5,
+            }}
+          >
+            Back to Search
+          </Button>
+          <Button
+            onClick={handleRandomAnime}
+            variant="outlined"
+            startIcon={randomAnimeLoading ? <CircularProgress size={16} sx={{ color: 'var(--text-primary)' }} /> : <ShuffleIcon />}
+            disabled={randomAnimeLoading}
+            sx={{
+              borderColor: 'var(--border-hover)',
+              color: 'var(--text-primary)',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              animation: 'fadeInUp 0.5s ease-out',
+              '&:hover': {
+                borderColor: 'var(--border-focus)',
+                backgroundColor: 'var(--bg-hover)',
+              },
+              '&:disabled': {
+                borderColor: 'var(--border-secondary)',
+                color: 'var(--text-secondary)',
+              },
+            }}
+          >
+            Random Anime
+          </Button>
+        </Box>
         <SkeletonDetail />
       </Container>
     );
@@ -83,16 +148,47 @@ const DetailPage = () => {
         >
           {error}
         </Alert>
-        <Button 
-          startIcon={<ArrowBackIcon />} 
-          onClick={handleBack} 
-          variant="contained"
+        <Box
           sx={{
-            animation: 'fadeInUp 0.6s ease-out',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: 2,
           }}
         >
-          Back to Search
-        </Button>
+          <Button 
+            startIcon={<ArrowBackIcon />} 
+            onClick={handleBack} 
+            variant="contained"
+            sx={{
+              animation: 'fadeInUp 0.6s ease-out',
+            }}
+          >
+            Back to Search
+          </Button>
+          <Button
+            onClick={handleRandomAnime}
+            variant="outlined"
+            startIcon={randomAnimeLoading ? <CircularProgress size={16} sx={{ color: 'var(--text-primary)' }} /> : <ShuffleIcon />}
+            disabled={randomAnimeLoading}
+            sx={{
+              borderColor: 'var(--border-hover)',
+              color: 'var(--text-primary)',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              animation: 'fadeInUp 0.6s ease-out',
+              '&:hover': {
+                borderColor: 'var(--border-focus)',
+                backgroundColor: 'var(--bg-hover)',
+              },
+              '&:disabled': {
+                borderColor: 'var(--border-secondary)',
+                color: 'var(--text-secondary)',
+              },
+            }}
+          >
+            Random Anime
+          </Button>
+        </Box>
       </Container>
     );
   }
@@ -116,16 +212,47 @@ const DetailPage = () => {
         >
           Anime not found
         </Alert>
-        <Button 
-          startIcon={<ArrowBackIcon />} 
-          onClick={handleBack} 
-          variant="contained"
+        <Box
           sx={{
-            animation: 'fadeInUp 0.6s ease-out',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: 2,
           }}
         >
-          Back to Search
-        </Button>
+          <Button 
+            startIcon={<ArrowBackIcon />} 
+            onClick={handleBack} 
+            variant="contained"
+            sx={{
+              animation: 'fadeInUp 0.6s ease-out',
+            }}
+          >
+            Back to Search
+          </Button>
+          <Button
+            onClick={handleRandomAnime}
+            variant="outlined"
+            startIcon={randomAnimeLoading ? <CircularProgress size={16} sx={{ color: 'var(--text-primary)' }} /> : <ShuffleIcon />}
+            disabled={randomAnimeLoading}
+            sx={{
+              borderColor: 'var(--border-hover)',
+              color: 'var(--text-primary)',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              animation: 'fadeInUp 0.6s ease-out',
+              '&:hover': {
+                borderColor: 'var(--border-focus)',
+                backgroundColor: 'var(--bg-hover)',
+              },
+              '&:disabled': {
+                borderColor: 'var(--border-secondary)',
+                color: 'var(--text-secondary)',
+              },
+            }}
+          >
+            Random Anime
+          </Button>
+        </Box>
       </Container>
     );
   }
@@ -133,18 +260,71 @@ const DetailPage = () => {
   const imageUrl = getAnimeImageUrl(selectedAnime, true);
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4, position: 'relative', zIndex: 1 }}>
-      <Button
-        startIcon={<ArrowBackIcon />}
-        onClick={handleBack}
-        variant="outlined"
-        sx={{ 
+    <>
+      <Snackbar
+        open={!!randomAnimeError}
+        autoHideDuration={5000}
+        onClose={() => setRandomAnimeError(null)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setRandomAnimeError(null)}
+          severity="error"
+          sx={{
+            background: 'var(--bg-hover-secondary)',
+            border: '1px solid var(--border-hover)',
+            color: 'var(--text-primary)',
+            '& .MuiAlert-icon': {
+              color: 'var(--accent-error)',
+            },
+          }}
+        >
+          {randomAnimeError}
+        </Alert>
+      </Snackbar>
+      <Container maxWidth="lg" sx={{ py: 4, position: 'relative', zIndex: 1 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
           mb: 3,
-          animation: 'fadeInUp 0.5s ease-out',
+          gap: 2,
         }}
       >
-        Back to Search
-      </Button>
+        <Button
+          startIcon={<ArrowBackIcon />}
+          onClick={handleBack}
+          variant="outlined"
+          sx={{ 
+            animation: 'fadeInUp 0.5s ease-out',
+          }}
+        >
+          Back to Search
+        </Button>
+        <Button
+          onClick={handleRandomAnime}
+          variant="outlined"
+          startIcon={randomAnimeLoading ? <CircularProgress size={16} sx={{ color: 'var(--text-primary)' }} /> : <ShuffleIcon />}
+          disabled={randomAnimeLoading}
+          sx={{
+            borderColor: 'var(--border-hover)',
+            color: 'var(--text-primary)',
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            animation: 'fadeInUp 0.5s ease-out',
+            '&:hover': {
+              borderColor: 'var(--border-focus)',
+              backgroundColor: 'var(--bg-hover)',
+            },
+            '&:disabled': {
+              borderColor: 'var(--border-secondary)',
+              color: 'var(--text-secondary)',
+            },
+          }}
+        >
+          Random Anime
+        </Button>
+      </Box>
 
       <Paper 
         elevation={3} 
@@ -515,6 +695,7 @@ const DetailPage = () => {
         </Grid>
       </Paper>
     </Container>
+    </>
   );
 };
 

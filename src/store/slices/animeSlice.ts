@@ -39,6 +39,11 @@ export interface SearchParams {
   page?: number;
 }
 
+export interface TopAnimeParams {
+  limit?: number;
+  page?: number;
+}
+
 export const fetchAnimeSearch = createAsyncThunk<
   { results: Anime[]; query: string; pagination: PaginationInfo },
   SearchParams,
@@ -82,6 +87,36 @@ export const fetchAnimeDetail = createAsyncThunk<
     } catch (error) {
       return rejectWithValue(
         error instanceof Error ? error.message : 'Failed to fetch anime details'
+      );
+    }
+  }
+);
+
+export const fetchTopAnimeForFiltering = createAsyncThunk<
+  { results: Anime[]; query: string; pagination: PaginationInfo },
+  TopAnimeParams,
+  { rejectValue: string }
+>(
+  'anime/topForFiltering',
+  async ({ limit = 25, page = 1 }, { rejectWithValue, signal }) => {
+    try {
+      const response = await getTopAnime(limit, page, signal);
+      const pagination: PaginationInfo = {
+        currentPage: response.pagination.current_page,
+        lastVisiblePage: response.pagination.last_visible_page,
+        hasNextPage: response.pagination.has_next_page,
+        itemsPerPage: response.pagination.items.per_page,
+        totalItems: response.pagination.items.total,
+        currentPageItems: response.pagination.items.count,
+      };
+      return { results: response.data, query: '', pagination };
+    } catch (error) {
+      // Don't show error if request was aborted
+      if (error instanceof Error && error.name === 'AbortError') {
+        return rejectWithValue('');
+      }
+      return rejectWithValue(
+        error instanceof Error ? error.message : 'Failed to fetch top anime'
       );
     }
   }
@@ -136,6 +171,27 @@ const animeSlice = createSlice({
         if (action.payload !== '') {
           state.loading = false;
           state.error = action.payload || 'Failed to search anime';
+          state.searchResults = [];
+          state.pagination = null;
+        }
+        // If aborted, don't update state - let the new request handle it
+      })
+      // Top Anime for Filtering
+      .addCase(fetchTopAnimeForFiltering.pending, (state: AnimeState) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchTopAnimeForFiltering.fulfilled, (state: AnimeState, action: PayloadAction<{ results: Anime[]; query: string; pagination: PaginationInfo }>) => {
+        state.loading = false;
+        state.searchResults = action.payload.results;
+        state.searchQuery = action.payload.query;
+        state.pagination = action.payload.pagination;
+      })
+      .addCase(fetchTopAnimeForFiltering.rejected, (state: AnimeState, action) => {
+        // Only update state if not aborted (empty payload means aborted)
+        if (action.payload !== '') {
+          state.loading = false;
+          state.error = action.payload || 'Failed to fetch top anime';
           state.searchResults = [];
           state.pagination = null;
         }

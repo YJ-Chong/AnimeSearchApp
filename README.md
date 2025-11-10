@@ -122,6 +122,34 @@ Fully responsive design that adapts seamlessly across all device sizes using Mat
 
 ---
 
+### 6. Random Anime Discovery Feature
+
+A one-click random anime discovery feature that helps users explore new content.
+
+**Features:**
+- **Random Anime Button**: Available in both search page (FilterBar) and detail page (top-right)
+- **Smart Filtering**: Automatically excludes anime with "hentai" genre
+- **Rate Limiting**: 
+  - API-level: 400ms delay to respect Jikan's 3 requests/second limit
+  - Client-level: 1-second cooldown between button clicks
+- **Error Handling**: User-friendly error messages via Snackbar notifications
+- **Loading States**: Visual feedback with spinner during fetch
+- **Direct Navigation**: Navigates directly to random anime's detail page
+
+**User Experience:**
+- One-click discovery of random anime
+- Prevents rate limit errors with built-in throttling
+- Clear error messages if API calls fail
+- Consistent button styling matching app design
+- Available from multiple locations in the app
+
+**Key Files:**
+- `src/services/api.ts` (`getRandomAnime` function)
+- `src/components/FilterBar.tsx` (Random Anime button)
+- `src/pages/DetailPage.tsx` (Random Anime button)
+
+---
+
 ## 🛠️ Technology Stack
 
 - React 18, TypeScript

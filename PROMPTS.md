@@ -1634,3 +1634,194 @@ A comprehensive recommendation system was implemented to display top-rated anime
 ✅ Recommendations don't interfere with search functionality
 ✅ Error handling works gracefully
 ✅ Loading state doesn't block main search
+
+---
+
+## Prompt: Random Anime Discovery Feature
+
+**Prompt:**
+Please add a "Random Anime" button next to the List and Grid view toggle buttons in the header/toolbar. When clicked, this button should fetch a random anime from the database (excluding any anime with the "hentai" genre) and navigate the user directly to that anime's detail page, providing users with a quick way to discover random anime recommendations. Ensure the button styling matches the existing List and Grid view buttons for visual consistency.
+
+**AI response and action:**
+
+### Random Anime Discovery Feature Implementation
+
+A comprehensive random anime discovery feature was implemented with rate limiting, error handling, and user-friendly feedback to help users discover new anime content.
+
+### API Service Updates (`src/services/api.ts`)
+
+#### New Function Added
+
+**`getRandomAnime` Function:**
+- Fetches a random anime from Jikan API's top anime endpoint
+- **Rate Limiting**: Includes 400ms delay between requests to respect Jikan's 3 requests/second limit
+- **Hentai Filtering**: Automatically filters out anime with "hentai" in genres or explicit_genres
+- **Efficient Approach**: 
+  - Fetches a single random page (1-50) from top anime
+  - Filters non-hentai anime from the page
+  - Falls back to page 1 if random page has no suitable anime
+- **Error Handling**: 
+  - Detects 429 (Too Many Requests) errors
+  - Throws user-friendly error messages
+  - Handles API failures gracefully
+- Returns: `Promise<Anime>` - Single anime object
+- Throws error if no suitable anime found
+
+**Implementation Details:**
+- Uses `getTopAnime` function to fetch random pages
+- Random page selection: `Math.floor(Math.random() * 50) + 1`
+- Filters anime by checking both `genres` and `explicit_genres` arrays
+- Case-insensitive genre name matching
+- Returns random anime from filtered list
+
+### FilterBar Component Updates (`src/components/FilterBar.tsx`)
+
+#### New Features Added
+
+**1. Random Anime Button:**
+- Positioned next to Grid/List view toggle buttons
+- Material-UI Button with outlined variant
+- Shuffle icon from Material-UI icons
+- Matches styling of existing view toggle buttons
+- Loading state with CircularProgress spinner
+- Disabled during loading to prevent multiple clicks
+
+**2. Rate Limiting:**
+- Client-side rate limiting: 1-second minimum cooldown between clicks
+- Tracks last click timestamp using `useState`
+- Prevents rapid clicking that could trigger rate limit errors
+- Shows error message if clicked too quickly
+
+**3. Error Handling:**
+- Snackbar notification for error messages
+- Displays at top center of screen
+- Auto-dismisses after 5 seconds
+- User-friendly error messages:
+  - "Rate limit exceeded. Please wait a moment before trying again."
+  - "Please wait a moment before trying again." (for rapid clicks)
+  - "Failed to fetch random anime. Please try again." (for general errors)
+
+**4. Navigation:**
+- Uses React Router's `useNavigate` hook
+- Navigates to `/anime/{id}` route on success
+- Smooth transitions between pages
+
+**5. State Management:**
+- `randomAnimeLoading`: Boolean state for loading indicator
+- `randomAnimeError`: String state for error messages
+- `lastRandomClick`: Number state tracking last click timestamp
+
+### DetailPage Component Updates (`src/pages/DetailPage.tsx`)
+
+#### Random Anime Button Integration
+
+**1. Button Placement:**
+- Added to top-right corner next to "Back to Search" button
+- Wrapped in flex container with space-between layout
+- Appears in all page states:
+  - Loading state
+  - Error state
+  - Not found state
+  - Normal detail view
+
+**2. Same Features as FilterBar:**
+- Identical rate limiting logic
+- Same error handling with Snackbar
+- Matching button styling
+- Loading state with spinner
+- Navigation to random anime detail page
+
+**3. Consistent UX:**
+- Same user experience across both pages
+- Users can discover random anime from anywhere in the app
+- Maintains visual consistency with app design
+
+### Key Features
+
+1. **Random Discovery**: Helps users discover new anime they might not have found otherwise
+2. **Content Filtering**: Automatically excludes inappropriate content (hentai genre)
+3. **Rate Limiting**: 
+   - API-level: 400ms delay between requests
+   - Client-level: 1-second cooldown between button clicks
+4. **Error Handling**: Comprehensive error handling with user-friendly messages
+5. **Visual Feedback**: Loading spinners and error notifications
+6. **Consistent Design**: Matches existing button styles and theme
+7. **Accessibility**: Proper disabled states and loading indicators
+8. **Performance**: Efficient single-page fetching approach
+9. **User Experience**: Smooth navigation and clear feedback
+
+### Technical Implementation Details
+
+**Rate Limiting Strategy:**
+- **API Level**: 400ms delay ensures ~2.5 requests/second (under Jikan's 3/second limit)
+- **Client Level**: 1-second cooldown prevents rapid clicking
+- **Error Detection**: Checks for 429 status code and "Too Many Requests" messages
+
+**Error Handling Flow:**
+1. Client-side cooldown check (prevents rapid clicks)
+2. API call with delay (respects rate limits)
+3. Error detection and user-friendly message conversion
+4. Snackbar notification display
+5. Auto-dismiss after 5 seconds
+
+**Navigation Flow:**
+1. User clicks "Random Anime" button
+2. Button shows loading spinner
+3. API fetches random anime (with filtering)
+4. On success: Navigate to detail page
+5. On error: Show error message in Snackbar
+
+**Filtering Logic:**
+- Checks both `genres` and `explicit_genres` arrays
+- Case-insensitive matching: `g.name.toLowerCase() === 'hentai'`
+- Filters before random selection
+- Falls back to page 1 if random page has no suitable anime
+
+### User Experience Improvements
+
+1. **Quick Discovery**: One-click access to random anime
+2. **Safe Content**: Automatic filtering of inappropriate genres
+3. **Clear Feedback**: Loading states and error messages
+4. **Rate Limit Protection**: Prevents errors from excessive clicking
+5. **Consistent Access**: Available from both search and detail pages
+6. **Smooth Transitions**: Seamless navigation between pages
+
+### Files Created/Modified
+
+**Modified Files:**
+1. `src/services/api.ts`:
+   - Added `getRandomAnime` function
+   - Added rate limiting delay utility
+   - Enhanced error handling for 429 status codes
+   - Updated `getTopAnime`, `searchAnime`, and `getAnimeDetail` to detect rate limit errors
+
+2. `src/components/FilterBar.tsx`:
+   - Added Random Anime button next to view toggles
+   - Added rate limiting state management
+   - Added error handling with Snackbar
+   - Added navigation logic
+   - Imported ShuffleIcon and CircularProgress
+
+3. `src/pages/DetailPage.tsx`:
+   - Added Random Anime button in top-right corner
+   - Added same rate limiting and error handling
+   - Updated layout to accommodate button
+   - Added Snackbar for error notifications
+   - Imported necessary components
+
+### Testing Checklist
+
+✅ Random Anime button appears in FilterBar next to view toggles
+✅ Random Anime button appears in DetailPage top-right corner
+✅ Button styling matches existing buttons
+✅ Clicking button fetches random anime
+✅ Navigation to detail page works correctly
+✅ Hentai genre filtering works correctly
+✅ Rate limiting prevents rapid clicks
+✅ Error messages display correctly in Snackbar
+✅ Loading spinner shows during fetch
+✅ Button disabled during loading
+✅ Error handling for API failures
+✅ Error handling for rate limit errors (429)
+✅ Works in both light and dark themes
+✅ Responsive design works on all screen sizes
